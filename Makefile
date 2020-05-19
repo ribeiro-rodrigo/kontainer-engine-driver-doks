@@ -7,8 +7,8 @@ VERSION:=$(shell  date +%Y%m%d%H%M%S)
 DIST_DIR:=dist
 GO ?= go
 
-.PHONY: all
-all: build
+.PHONY: build
+build: binary-build
 
 #
 # Go build related tasks
