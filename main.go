@@ -32,5 +32,4 @@ func main() {
 
 	wg.Add(1)
 	wg.Wait()
-
 }

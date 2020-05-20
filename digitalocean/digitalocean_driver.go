@@ -12,7 +12,7 @@ type DigitalOceanDriver struct {
 
 func (*DigitalOceanDriver) GetDriverCreateOptions(ctx context.Context) (*types.DriverFlags, error) {
 
-	return nil, nil
+	return getCreateOptions(), nil
 }
 
 func (*DigitalOceanDriver) GetDriverUpdateOptions(ctx context.Context) (*types.DriverFlags, error) {

@@ -2,7 +2,7 @@ package digitalocean
 
 import "github.com/rancher/kontainer-engine/types"
 
-func GetCreateOptions() (*types.DriverFlags, error) {
+func getCreateOptions() *types.DriverFlags {
 
 	builder := flagBuilder()
 
@@ -105,7 +105,7 @@ func GetCreateOptions() (*types.DriverFlags, error) {
 		types.StringType,
 		"Cluster VPC",
 		nil,
-	), nil
+	)
 }
 
 func flagBuilder() func(name, typ, usage string, def *types.Default) *types.DriverFlags {
