@@ -104,6 +104,7 @@ func getCreateOptions() *types.DriverFlags {
 		"node-pool-labels",
 		types.StringSliceType,
 		"Labels for the node pool",
+		nil 
 	)
 
 	return builder(
