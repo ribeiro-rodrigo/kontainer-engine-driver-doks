@@ -14,7 +14,7 @@ func getCreateOptions() *types.DriverFlags {
 	)
 
 	builder(
-		"cluster-name",
+		"name",
 		types.StringType,
 		"Default name to something meaningful to you",
 		nil,
@@ -62,7 +62,7 @@ func getCreateOptions() *types.DriverFlags {
 	)
 
 	builder(
-		"node-count",
+		"node-pool-count",
 		types.IntType,
 		"The desired number of worker nodes",
 		&types.Default{
@@ -71,21 +71,21 @@ func getCreateOptions() *types.DriverFlags {
 	)
 
 	builder(
-		"node-min",
+		"node-pool-min",
 		types.IntType,
 		"The minimum number of worker nodes",
 		nil,
 	)
 
 	builder(
-		"node-max",
+		"node-pool-max",
 		types.IntType,
 		"The maximum number of worker nodes",
 		nil,
 	)
 
 	builder(
-		"node-type",
+		"node-pool-size",
 		types.StringType,
 		"The type of machine to use for worker nodes",
 		&types.Default{
@@ -98,6 +98,12 @@ func getCreateOptions() *types.DriverFlags {
 		types.StringSliceType,
 		"Optional tags to your cluster",
 		nil,
+	)
+
+	builder(
+		"node-pool-labels",
+		types.StringSliceType,
+		"Labels for the node pool",
 	)
 
 	return builder(
