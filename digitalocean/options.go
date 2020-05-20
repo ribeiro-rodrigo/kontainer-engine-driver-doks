@@ -123,11 +123,3 @@ func flagBuilder() func(name, typ, usage string, def *types.Default) *types.Driv
 		return flags
 	}
 }
-
-func makeFlag(name, typ, usage string, def *types.Default) *types.Flag {
-	return &types.Flag{
-		Type:    typ,
-		Usage:   usage,
-		Default: def,
-	}
-}
