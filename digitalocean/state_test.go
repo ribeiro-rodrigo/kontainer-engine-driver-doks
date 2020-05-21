@@ -26,3 +26,11 @@ func TestGetLabelsFromStringSlice(t *testing.T) {
 
 	assert.Equal(t, expectedLabels, labels, "Labels equals expectedLabels")
 }
+
+func TestGetLabelsFromStringSlicePassNilSlice(t *testing.T) {
+	labels := getLabelsFromStringSlice(nil)
+
+	expectedEmptyLabels := map[string]string{}
+
+	assert.Equal(t, expectedEmptyLabels, labels, "Slice nil expected empty labels")
+}

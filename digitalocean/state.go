@@ -63,7 +63,12 @@ func getStateFromOpts(driverOptions *types.DriverOptions) (State, error) {
 }
 
 func getLabelsFromStringSlice(labelsString *types.StringSlice) map[string]string {
+
 	labels := map[string]string{}
+
+	if labelsString == nil {
+		return labels
+	}
 
 	for _, part := range labelsString.Value {
 		kv := strings.Split(part, "=")
