@@ -160,3 +160,27 @@ func TestGetStateFromOptsKeysCamelCase(t *testing.T) {
 	assert.Equal(t, nodePoolMax, state.NodePool.MaxNodes, "nodePoolMax equals")
 
 }
+
+func TestGetStateFromOptsKeysNotAutoScale(t *testing.T) {
+
+	const nodePoolCount = 8
+
+	driverOptions := types.DriverOptions{
+		BoolOptions: map[string]bool{
+			"nodePoolAutoscale": false,
+		},
+		IntOptions: map[string]int64{
+			"nodePoolMin":   int64(5),
+			"nodePoolMax":   int64(10),
+			"nodePoolCount": int64(nodePoolCount),
+		},
+	}
+
+	state, err := getStateFromOpts(&driverOptions)
+
+	assert.Nil(t, err, "Not error in getStateFromOpts")
+	assert.Equal(t, 0, state.NodePool.MinNodes)
+	assert.Equal(t, 0, state.NodePool.MaxNodes)
+	assert.Equal(t, nodePoolCount, state.NodePool.Count)
+
+}
