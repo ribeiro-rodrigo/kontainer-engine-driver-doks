@@ -1,8 +1,15 @@
-package digitalocean
+package options
 
 import "github.com/rancher/kontainer-engine/types"
 
-func getCreateOptions() *types.DriverFlags {
+type OptionsBuilder struct {
+}
+
+func NewOptionsBuilder() OptionsBuilder {
+	return OptionsBuilder{}
+}
+
+func (*OptionsBuilder) BuildCreateOptions() *types.DriverFlags {
 
 	builder := flagBuilder()
 

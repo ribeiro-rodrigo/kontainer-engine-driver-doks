@@ -1,4 +1,4 @@
-package digitalocean
+package options
 
 import (
 	"testing"
@@ -7,8 +7,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var optionsBuilder = NewOptionsBuilder()
+
 func TestGetCreateOptions(t *testing.T) {
-	options := getCreateOptions()
+
+	options := optionsBuilder.BuildCreateOptions()
 
 	DisplayNameFlag, ok := options.Options["display-name"]
 

@@ -26,7 +26,8 @@ func main() {
 	}
 
 	addr := make(chan string)
-	go types.NewServer(&digitalocean.DigitalOceanDriver{}, addr).ServeOrDie(fmt.Sprintf("127.0.0.1:%v", port))
+	driver := digitalocean.NewDigitalOceanDriver()
+	go types.NewServer(&driver, addr).ServeOrDie(fmt.Sprintf("127.0.0.1:%v", port))
 
 	logrus.Debugf("digitalocean driver up and running on at %v", <-addr)
 

@@ -1,4 +1,4 @@
-package digitalocean
+package state
 
 import (
 	"testing"
@@ -6,6 +6,8 @@ import (
 	"github.com/rancher/kontainer-engine/types"
 	"github.com/stretchr/testify/assert"
 )
+
+var stateBuilder = NewStateBuilder()
 
 func TestGetLabelsFromStringSlice(t *testing.T) {
 	labelsStringSlice := types.StringSlice{
@@ -78,7 +80,7 @@ func TestGetStateFromOptsKeysSnakeCase(t *testing.T) {
 		},
 	}
 
-	state, err := getStateFromOpts(&driverOptions)
+	state, err := stateBuilder.BuildStateFromOpts(&driverOptions)
 
 	assert.Nil(t, err, "Not error in getStateFromOpts")
 	assert.Equal(t, displayName, state.DisplayName, "DisplayName equals")
@@ -141,7 +143,7 @@ func TestGetStateFromOptsKeysCamelCase(t *testing.T) {
 		},
 	}
 
-	state, err := getStateFromOpts(&driverOptions)
+	state, err := stateBuilder.BuildStateFromOpts(&driverOptions)
 
 	assert.Nil(t, err, "Not error in getStateFromOpts")
 	assert.Equal(t, displayName, state.DisplayName, "DisplayName equals")
@@ -176,7 +178,7 @@ func TestGetStateFromOptsKeysNotAutoScale(t *testing.T) {
 		},
 	}
 
-	state, err := getStateFromOpts(&driverOptions)
+	state, err := stateBuilder.BuildStateFromOpts(&driverOptions)
 
 	assert.Nil(t, err, "Not error in getStateFromOpts")
 	assert.Equal(t, 0, state.NodePool.MinNodes)

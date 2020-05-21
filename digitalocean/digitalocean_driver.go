@@ -4,15 +4,28 @@ import (
 	"context"
 
 	"github.com/rancher/kontainer-engine/types"
+	"github.com/ribeiro-rodrigo/kontainer-engine-driver-digitalocean/digitalocean/options"
+	"github.com/ribeiro-rodrigo/kontainer-engine-driver-digitalocean/digitalocean/state"
 )
 
 type DigitalOceanDriver struct {
+	stateBuilder       state.StateBuilder
+	optionsBuilder     options.OptionsBuilder
 	driverCapabilities types.Capabilities
 }
 
-func (*DigitalOceanDriver) GetDriverCreateOptions(ctx context.Context) (*types.DriverFlags, error) {
+func NewDigitalOceanDriver() DigitalOceanDriver {
+	driver := DigitalOceanDriver{
+		stateBuilder:   state.NewStateBuilder(),
+		optionsBuilder: options.NewOptionsBuilder(),
+	}
 
-	return getCreateOptions(), nil
+	return driver
+}
+
+func (driver *DigitalOceanDriver) GetDriverCreateOptions(ctx context.Context) (*types.DriverFlags, error) {
+
+	return driver.optionsBuilder.BuildCreateOptions(), nil
 }
 
 func (*DigitalOceanDriver) GetDriverUpdateOptions(ctx context.Context) (*types.DriverFlags, error) {

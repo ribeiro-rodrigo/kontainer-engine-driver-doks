@@ -1,4 +1,4 @@
-package digitalocean
+package state
 
 import (
 	"strings"
@@ -20,7 +20,13 @@ type State struct {
 	ClusterInfo types.ClusterInfo
 }
 
-func getStateFromOpts(driverOptions *types.DriverOptions) (State, error) {
+type StateBuilder struct{}
+
+func NewStateBuilder() StateBuilder {
+	return StateBuilder{}
+}
+
+func (*StateBuilder) BuildStateFromOpts(driverOptions *types.DriverOptions) (State, error) {
 
 	state := State{
 		ClusterInfo: types.ClusterInfo{
