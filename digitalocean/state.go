@@ -36,7 +36,7 @@ func getStateFromOpts(driverOptions *types.DriverOptions) (State, error) {
 
 	state.DisplayName = getValue(types.StringType, "display-name", "displayName").(string)
 	state.Name = getValue(types.StringType, "name").(string)
-	state.Tags = getValue(types.StringSliceType, "tags").([]string)
+	state.Tags = getValue(types.StringSliceType, "tags").(*types.StringSlice).Value
 	state.AutoUpgrade = getValue(types.BoolType, "auto-upgraded", "autoUpgraded").(bool)
 	state.RegionSlug = getValue(types.StringType, "region-slug", "regionSlug").(string)
 	state.VPCID = getValue(types.StringType, "vpc-id", "vpcID").(string)
@@ -46,11 +46,11 @@ func getStateFromOpts(driverOptions *types.DriverOptions) (State, error) {
 	state.NodePool.AutoScale = getValue(types.BoolType, "node-pool-autoscale", "nodePoolAutoscale").(bool)
 
 	if state.NodePool.AutoScale {
-		state.NodePool.MaxNodes = getValue(types.IntType, "node-pool-max", "nodePoolMax").(int)
-		state.NodePool.MinNodes = getValue(types.IntType, "node-pool-min", "nodePoolMin").(int)
+		state.NodePool.MaxNodes = int(getValue(types.IntType, "node-pool-max", "nodePoolMax").(int64))
+		state.NodePool.MinNodes = int(getValue(types.IntType, "node-pool-min", "nodePoolMin").(int64))
 	}
 
-	state.NodePool.Count = getValue(types.IntType, "node-pool-count", "nodePoolCount").(int)
+	state.NodePool.Count = int(getValue(types.IntType, "node-pool-count", "nodePoolCount").(int64))
 
 	nodePoolLabels := getLabelsFromStringSlice(
 		getValue(types.StringSliceType, "node-pool-labels", "nodePoolLabels").(*types.StringSlice),
