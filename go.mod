@@ -3,7 +3,7 @@ module github.com/ribeiro-rodrigo/kontainer-engine-driver-digitalocean
 go 1.14
 
 require (
-	github.com/digitalocean/godo v1.36.0 // indirect
+	github.com/digitalocean/godo v1.36.0
 	github.com/gogo/protobuf v1.3.0 // indirect
 	github.com/oracle/oci-go-sdk v19.0.0+incompatible
 	github.com/pkg/errors v0.8.1
@@ -11,7 +11,7 @@ require (
 	github.com/rancher/rke v0.2.8 // indirect
 	github.com/rancher/types v0.0.0-20190916163052-4cf2c20529fd // indirect
 	github.com/sirupsen/logrus v1.4.2
-	github.com/stretchr/testify v1.5.1 // indirect
+	github.com/stretchr/testify v1.5.1
 	github.com/urfave/cli v1.21.0 // indirect
 	golang.org/x/crypto v0.0.0-20190829043050-9756ffdc2472 // indirect
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
