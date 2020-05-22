@@ -18,70 +18,70 @@ func TestGetCreateOptions(t *testing.T) {
 	assert.True(t, ok, "Token is present")
 	assert.Equal(t, types.StringType, tokenFlag.GetType(), "Token type is string")
 
-	DisplayNameFlag, ok := options.Options["display-name"]
+	displayNameFlag, ok := options.Options["display-name"]
 
 	assert.True(t, ok, "DisplayName flag is present")
-	assert.Equal(t, types.StringType, DisplayNameFlag.GetType(), "DisplayName type is string")
+	assert.Equal(t, types.StringType, displayNameFlag.GetType(), "DisplayName type is string")
 
-	NameFlag, ok := options.Options["name"]
+	nameFlag, ok := options.Options["name"]
 
 	assert.True(t, ok, "Name flag is present")
-	assert.Equal(t, types.StringType, NameFlag.GetType(), "Name type is string")
+	assert.Equal(t, types.StringType, nameFlag.GetType(), "Name type is string")
 
-	AutoUpgradeFlag, ok := options.Options["auto-upgraded"]
+	autoUpgradeFlag, ok := options.Options["auto-upgraded"]
 
 	assert.True(t, ok, "AutoUpgrade flag is present")
-	assert.Equal(t, types.BoolType, AutoUpgradeFlag.GetType(), "AutoUpgrade type is bool")
+	assert.Equal(t, types.BoolType, autoUpgradeFlag.GetType(), "AutoUpgrade type is bool")
 
-	RegionSlugFlag, ok := options.Options["region-slug"]
+	regionSlugFlag, ok := options.Options["region-slug"]
 
 	assert.True(t, ok, "RegionSlug flag is present")
-	assert.Equal(t, types.StringType, RegionSlugFlag.GetType(), "RegionSlug type is string")
+	assert.Equal(t, types.StringType, regionSlugFlag.GetType(), "RegionSlug type is string")
 
-	VersionSlugFlag, ok := options.Options["version-slug"]
+	versionSlugFlag, ok := options.Options["version-slug"]
 
 	assert.True(t, ok, "VersionSlug flag is present")
-	assert.Equal(t, types.StringType, VersionSlugFlag.GetType(), "VersionSlug type is string")
+	assert.Equal(t, types.StringType, versionSlugFlag.GetType(), "VersionSlug type is string")
 
-	NodePoolNameFlag, ok := options.Options["node-pool-name"]
+	nodePoolNameFlag, ok := options.Options["node-pool-name"]
 
 	assert.True(t, ok, "NodePoolName flag is present")
-	assert.Equal(t, types.StringType, NodePoolNameFlag.GetType(), "NodePoolName type is string")
+	assert.Equal(t, types.StringType, nodePoolNameFlag.GetType(), "NodePoolName type is string")
 
-	NodePoolAutoScaleFlag, ok := options.Options["node-pool-autoscale"]
+	nodePoolAutoScaleFlag, ok := options.Options["node-pool-autoscale"]
 
 	assert.True(t, ok, "NodePoolAutoScale flag is present")
-	assert.Equal(t, types.BoolType, NodePoolAutoScaleFlag.GetType(), "NodePoolAutoScale type is bool")
+	assert.Equal(t, types.BoolType, nodePoolAutoScaleFlag.GetType(), "NodePoolAutoScale type is bool")
 
-	NodePoolCountFlag, ok := options.Options["node-pool-count"]
+	nodePoolCountFlag, ok := options.Options["node-pool-count"]
 
 	assert.True(t, ok, "NodePoolCount flag is present")
-	assert.Equal(t, types.IntType, NodePoolCountFlag.GetType(), "NodePoolCount type is int")
+	assert.Equal(t, types.IntType, nodePoolCountFlag.GetType(), "NodePoolCount type is int")
 
-	NodePoolMinFlag, ok := options.Options["node-pool-min"]
+	nodePoolMinFlag, ok := options.Options["node-pool-min"]
 
 	assert.True(t, ok, "NodePoolMin flag is present")
-	assert.Equal(t, types.IntType, NodePoolMinFlag.GetType(), "NodePoolMin type is int")
+	assert.Equal(t, types.IntType, nodePoolMinFlag.GetType(), "NodePoolMin type is int")
 
-	NodePoolMaxFlag, ok := options.Options["node-pool-max"]
+	nodePoolMaxFlag, ok := options.Options["node-pool-max"]
 
 	assert.True(t, ok, "NodePoolMax flag is present")
-	assert.Equal(t, types.IntType, NodePoolMaxFlag.GetType(), "NodePoolMax type is int")
+	assert.Equal(t, types.IntType, nodePoolMaxFlag.GetType(), "NodePoolMax type is int")
 
-	NodePoolSizeFlag, ok := options.Options["node-pool-size"]
+	nodePoolSizeFlag, ok := options.Options["node-pool-size"]
 
 	assert.True(t, ok, "NodePoolSize flag is present")
-	assert.Equal(t, types.StringType, NodePoolSizeFlag.GetType(), "NodePoolSize type is string")
+	assert.Equal(t, types.StringType, nodePoolSizeFlag.GetType(), "NodePoolSize type is string")
 
-	TagsFlag, ok := options.Options["tags"]
+	tagsFlag, ok := options.Options["tags"]
 
 	assert.True(t, ok, "Tags flag is present")
-	assert.Equal(t, types.StringSliceType, TagsFlag.GetType(), "Tags type is []string")
+	assert.Equal(t, types.StringSliceType, tagsFlag.GetType(), "Tags type is []string")
 
-	NodePoolLabelsFlag, ok := options.Options["node-pool-labels"]
+	nodePoolLabelsFlag, ok := options.Options["node-pool-labels"]
 
 	assert.True(t, ok, "NodePoolLabels flag is present")
-	assert.Equal(t, types.StringSliceType, NodePoolLabelsFlag.GetType(), "NodePoolLabels type is []string")
+	assert.Equal(t, types.StringSliceType, nodePoolLabelsFlag.GetType(), "NodePoolLabels type is []string")
 
 	VPCIDFlag, ok := options.Options["vpc-id"]
 
