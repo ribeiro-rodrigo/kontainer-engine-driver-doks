@@ -61,18 +61,14 @@ func (driver *Driver) Create(ctx context.Context, opts *types.DriverOptions, inf
 		return nil, err
 	}
 
-	if info.Metadata == nil {
-		info.Metadata = make(map[string]string)
-	}
+	state.ClusterID = clusterID
 
-	err = state.Save(info.Metadata)
+	err = state.Save(info)
 
 	if err != nil {
 		logrus.Debugf("Error save state: %v",err)
 		return nil, err
 	}
-
-	info.Metadata["clusterID"] = clusterID
 
 	return info, nil
 }
