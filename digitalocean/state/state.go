@@ -1,6 +1,9 @@
 package state
 
 import (
+	"encoding/json"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"strings"
 
 	"github.com/digitalocean/godo"
@@ -9,16 +12,31 @@ import (
 )
 
 type State struct {
-	Token string
-	DisplayName string
-	Name        string
-	Tags        []string
-	AutoUpgrade bool
-	RegionSlug  string
-	VPCID       string
-	VersionSlug string
-	NodePool    *godo.KubernetesNodePoolCreateRequest
-	ClusterInfo types.ClusterInfo
+	Token string `json:"token,omitempty"`
+	DisplayName string `json:"display_name,omitempty"`
+	Name        string `json:"name,omitempty"`
+	Tags        []string `json:"tags,omitempty"`
+	AutoUpgrade bool `json:"auto_upgrade,omitempty"`
+	RegionSlug  string `json:"region_slug,omitempty"`
+	VPCID       string `json:"vpc_id,omitempty"`
+	VersionSlug string `json:"version_slug,omitempty"`
+	NodePool    *godo.KubernetesNodePoolCreateRequest `json:"node_pool,omitempty"`
+}
+
+func (state *State) Save(clusterInfo *types.ClusterInfo) error{
+	bytes, err := json.Marshal(state)
+
+	if err != nil {
+		return errors.Wrap(err, "could not marshal state")
+	}
+
+	if clusterInfo.Metadata == nil {
+		clusterInfo.Metadata = make(map[string]string)
+	}
+
+	clusterInfo.Metadata["state"] = string(bytes)
+
+	return nil
 }
 
 type StateBuilder struct{}
