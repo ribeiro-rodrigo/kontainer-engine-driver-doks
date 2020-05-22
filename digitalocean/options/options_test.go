@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var optionsBuilder = NewOptionsBuilder()
+var optionsBuilder = NewBuilder()
 
 func TestGetCreateOptions(t *testing.T) {
 
