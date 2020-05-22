@@ -4,21 +4,30 @@ import (
 	"context"
 	"github.com/digitalocean/godo"
 	"github.com/ghodss/yaml"
+	"github.com/pkg/errors"
 	"github.com/rancher/kontainer-engine/store"
 	"github.com/ribeiro-rodrigo/kontainer-engine-driver-digitalocean/digitalocean/state"
 )
+
+type DigitalOceanFactory func(token string)DigitalOcean
+
+func NewDigitalOceanFactory()DigitalOceanFactory{
+	return func(token string)DigitalOcean{
+		return newDigitalOcean(token)
+	}
+}
 
 type DigitalOcean struct {
 	client *godo.Client
 }
 
-func NewDigitalOcean(token string) DigitalOcean {
+func newDigitalOcean(token string) DigitalOcean {
 	return DigitalOcean{
 		client: godo.NewFromToken(token),
 	}
 }
 
-func (do *DigitalOcean) CreateCluster(state state.State) (string, error){
+func (do *DigitalOcean) CreateCluster(ctx context.Context, state state.State) (string, error){
 	createClusterRequest := &godo.KubernetesClusterCreateRequest{
 		Name: state.Name,
 		Tags: state.Tags,
@@ -28,10 +37,10 @@ func (do *DigitalOcean) CreateCluster(state state.State) (string, error){
 		NodePools: []*godo.KubernetesNodePoolCreateRequest{state.NodePool},
 	}
 
-	cluster, _, err := do.client.Kubernetes.Create(context.Background(),createClusterRequest)
+	cluster, _, err := do.client.Kubernetes.Create(ctx,createClusterRequest)
 
 	if err != nil {
-		return "",err
+		return "",errors.Wrap(err,"error creating the cluster")
 	}
 
 	return cluster.ID, nil
@@ -42,7 +51,7 @@ func (do *DigitalOcean) GetKubeConfig(clusterID string)(*store.KubeConfig,error)
 	clusterKubeConfig, _, err := do.client.Kubernetes.GetKubeConfig(context.TODO(),clusterID)
 
 	if err != nil {
-		return nil,err
+		return nil, errors.Wrapf(err,"error get kubeConfig for cluster %s",clusterID)
 	}
 
 	kubeConfig := &store.KubeConfig{}
@@ -50,10 +59,13 @@ func (do *DigitalOcean) GetKubeConfig(clusterID string)(*store.KubeConfig,error)
 	err = yaml.Unmarshal(clusterKubeConfig.KubeconfigYAML, kubeConfig)
 
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrapf(err,"error marshal kubeConfig from clusterID %s",clusterID)
 	}
 
 	return kubeConfig, nil
 }
+
+
+
 
 

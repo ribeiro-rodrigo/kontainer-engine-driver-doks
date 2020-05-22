@@ -22,18 +22,14 @@ type State struct {
 	NodePool    *godo.KubernetesNodePoolCreateRequest `json:"node_pool,omitempty"`
 }
 
-func (state *State) Save(clusterInfo *types.ClusterInfo) error{
+func (state *State) Save(store map[string]string) error{
 	bytes, err := json.Marshal(state)
 
 	if err != nil {
 		return errors.Wrap(err, "could not marshal state")
 	}
 
-	if clusterInfo.Metadata == nil {
-		clusterInfo.Metadata = make(map[string]string)
-	}
-
-	clusterInfo.Metadata["state"] = string(bytes)
+	store["state"] = string(bytes)
 
 	return nil
 }
