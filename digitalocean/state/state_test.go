@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var stateBuilder = NewStateBuilder()
+var stateBuilder = NewBuilder()
 
 func TestGetLabelsFromStringSlice(t *testing.T) {
 	labelsStringSlice := types.StringSlice{
