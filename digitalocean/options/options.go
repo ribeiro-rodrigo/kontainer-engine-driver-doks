@@ -14,6 +14,13 @@ func (*OptionsBuilder) BuildCreateOptions() *types.DriverFlags {
 	builder := flagBuilder()
 
 	builder(
+			"token",
+			types.StringType,
+			"Personal access token",
+			nil,
+		)
+
+	builder(
 		"display-name",
 		types.StringType,
 		"The displayed name of the cluster in the Rancher UI",

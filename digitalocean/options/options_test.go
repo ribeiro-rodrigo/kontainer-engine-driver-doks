@@ -13,6 +13,11 @@ func TestGetCreateOptions(t *testing.T) {
 
 	options := optionsBuilder.BuildCreateOptions()
 
+	tokenFlag, ok := options.Options["token"]
+
+	assert.True(t, ok, "Token is present")
+	assert.Equal(t, types.StringType, tokenFlag.GetType(), "Token type is string")
+
 	DisplayNameFlag, ok := options.Options["display-name"]
 
 	assert.True(t, ok, "DisplayName flag is present")

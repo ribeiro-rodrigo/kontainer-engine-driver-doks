@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/digitalocean/godo v1.36.0
+	github.com/ghodss/yaml v1.0.0
 	github.com/gogo/protobuf v1.3.0 // indirect
 	github.com/oracle/oci-go-sdk v19.0.0+incompatible
 	github.com/pkg/errors v0.8.1
