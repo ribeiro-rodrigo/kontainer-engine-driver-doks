@@ -3,7 +3,6 @@ package state
 import (
 	"encoding/json"
 	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
 	"strings"
 
 	"github.com/digitalocean/godo"
@@ -48,9 +47,6 @@ func NewStateBuilder() StateBuilder {
 func (*StateBuilder) BuildStateFromOpts(driverOptions *types.DriverOptions) (State, error) {
 
 	state := State{
-		ClusterInfo: types.ClusterInfo{
-			Metadata: map[string]string{},
-		},
 		Tags:     []string{},
 		NodePool: &godo.KubernetesNodePoolCreateRequest{},
 	}
