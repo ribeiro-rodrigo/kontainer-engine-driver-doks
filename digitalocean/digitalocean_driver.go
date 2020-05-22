@@ -8,14 +8,14 @@ import (
 	"github.com/ribeiro-rodrigo/kontainer-engine-driver-digitalocean/digitalocean/state"
 )
 
-type DigitalOceanDriver struct {
+type Driver struct {
 	stateBuilder       state.StateBuilder
 	optionsBuilder     options.OptionsBuilder
 	driverCapabilities types.Capabilities
 }
 
-func NewDigitalOceanDriver() DigitalOceanDriver {
-	driver := DigitalOceanDriver{
+func NewDriver() Driver {
+	driver := Driver{
 		stateBuilder:   state.NewStateBuilder(),
 		optionsBuilder: options.NewOptionsBuilder(),
 	}
@@ -23,70 +23,70 @@ func NewDigitalOceanDriver() DigitalOceanDriver {
 	return driver
 }
 
-func (driver *DigitalOceanDriver) GetDriverCreateOptions(ctx context.Context) (*types.DriverFlags, error) {
+func (driver *Driver) GetDriverCreateOptions(ctx context.Context) (*types.DriverFlags, error) {
 
 	return driver.optionsBuilder.BuildCreateOptions(), nil
 }
 
-func (*DigitalOceanDriver) GetDriverUpdateOptions(ctx context.Context) (*types.DriverFlags, error) {
+func (*Driver) GetDriverUpdateOptions(ctx context.Context) (*types.DriverFlags, error) {
 	return nil, nil
 }
 
-func (*DigitalOceanDriver) Create(ctx context.Context, opts *types.DriverOptions, clusterInfo *types.ClusterInfo) (*types.ClusterInfo, error) {
-
-	return nil, nil
-}
-
-func (*DigitalOceanDriver) Update(ctx context.Context, clusterInfo *types.ClusterInfo, opts *types.DriverOptions) (*types.ClusterInfo, error) {
+func (*Driver) Create(ctx context.Context, opts *types.DriverOptions, _ *types.ClusterInfo) (*types.ClusterInfo, error) {
 
 	return nil, nil
 }
 
-func (*DigitalOceanDriver) PostCheck(ctx context.Context, clusterInfo *types.ClusterInfo) (*types.ClusterInfo, error) {
+func (*Driver) Update(ctx context.Context, clusterInfo *types.ClusterInfo, opts *types.DriverOptions) (*types.ClusterInfo, error) {
+
 	return nil, nil
 }
 
-func (*DigitalOceanDriver) Remove(ctx context.Context, clusterInfo *types.ClusterInfo) error {
+func (*Driver) PostCheck(ctx context.Context, clusterInfo *types.ClusterInfo) (*types.ClusterInfo, error) {
+	return nil, nil
+}
+
+func (*Driver) Remove(ctx context.Context, clusterInfo *types.ClusterInfo) error {
 	return nil
 }
 
-func (*DigitalOceanDriver) GetVersion(ctx context.Context, clusterInfo *types.ClusterInfo) (*types.KubernetesVersion, error) {
+func (*Driver) GetVersion(ctx context.Context, clusterInfo *types.ClusterInfo) (*types.KubernetesVersion, error) {
 	return nil, nil
 }
 
-func (*DigitalOceanDriver) SetVersion(ctx context.Context, clusterInfo *types.ClusterInfo, version *types.KubernetesVersion) error {
+func (*Driver) SetVersion(ctx context.Context, clusterInfo *types.ClusterInfo, version *types.KubernetesVersion) error {
 	return nil
 }
 
-func (*DigitalOceanDriver) GetClusterSize(ctx context.Context, clusterInfo *types.ClusterInfo) (*types.NodeCount, error) {
+func (*Driver) GetClusterSize(ctx context.Context, clusterInfo *types.ClusterInfo) (*types.NodeCount, error) {
 	return nil, nil
 }
 
-func (*DigitalOceanDriver) SetClusterSize(ctx context.Context, clusterInfo *types.ClusterInfo, count *types.NodeCount) error {
+func (*Driver) SetClusterSize(ctx context.Context, clusterInfo *types.ClusterInfo, count *types.NodeCount) error {
 
 	return nil
 }
 
-func (*DigitalOceanDriver) GetCapabilities(ctx context.Context) (*types.Capabilities, error) {
+func (*Driver) GetCapabilities(ctx context.Context) (*types.Capabilities, error) {
 	return nil, nil
 }
 
-func (*DigitalOceanDriver) RemoveLegacyServiceAccount(ctx context.Context, clusterInfo *types.ClusterInfo) error {
+func (*Driver) RemoveLegacyServiceAccount(ctx context.Context, clusterInfo *types.ClusterInfo) error {
 	return nil
 }
 
-func (*DigitalOceanDriver) ETCDSave(ctx context.Context, clusterInfo *types.ClusterInfo, opts *types.DriverOptions, snapshotName string) error {
+func (*Driver) ETCDSave(ctx context.Context, clusterInfo *types.ClusterInfo, opts *types.DriverOptions, snapshotName string) error {
 	return nil
 }
 
-func (*DigitalOceanDriver) ETCDRestore(ctx context.Context, clusterInfo *types.ClusterInfo, opts *types.DriverOptions, snapshotName string) (*types.ClusterInfo, error) {
+func (*Driver) ETCDRestore(ctx context.Context, clusterInfo *types.ClusterInfo, opts *types.DriverOptions, snapshotName string) (*types.ClusterInfo, error) {
 	return nil, nil
 }
 
-func (*DigitalOceanDriver) GetK8SCapabilities(ctx context.Context, opts *types.DriverOptions) (*types.K8SCapabilities, error) {
+func (*Driver) GetK8SCapabilities(ctx context.Context, opts *types.DriverOptions) (*types.K8SCapabilities, error) {
 	return nil, nil
 }
 
-func (*DigitalOceanDriver) ETCDRemoveSnapshot(ctx context.Context, clusterInfo *types.ClusterInfo, opts *types.DriverOptions, snapshotName string) error {
+func (*Driver) ETCDRemoveSnapshot(ctx context.Context, clusterInfo *types.ClusterInfo, opts *types.DriverOptions, snapshotName string) error {
 	return nil
 }
