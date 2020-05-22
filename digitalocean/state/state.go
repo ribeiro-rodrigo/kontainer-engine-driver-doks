@@ -9,6 +9,7 @@ import (
 )
 
 type State struct {
+	Token string
 	DisplayName string
 	Name        string
 	Tags        []string
@@ -40,6 +41,7 @@ func (*StateBuilder) BuildStateFromOpts(driverOptions *types.DriverOptions) (Sta
 		return options.GetValueFromDriverOptions(driverOptions, typ, keys...)
 	}
 
+	state.Token = getValue(types.StringType, "token").(string)
 	state.DisplayName = getValue(types.StringType, "display-name", "displayName").(string)
 	state.Name = getValue(types.StringType, "name").(string)
 	state.Tags = getValue(types.StringSliceType, "tags").(*types.StringSlice).Value

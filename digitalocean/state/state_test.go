@@ -39,6 +39,7 @@ func TestGetLabelsFromStringSlicePassNilSlice(t *testing.T) {
 
 func TestGetStateFromOptsKeysSnakeCase(t *testing.T) {
 
+	const token = "tkalal1234761"
 	const displayName = "cluster-test"
 	const name = "digitalOceanCluster"
 	const regionSlug = "nyc3"
@@ -57,6 +58,7 @@ func TestGetStateFromOptsKeysSnakeCase(t *testing.T) {
 
 	driverOptions := types.DriverOptions{
 		StringOptions: map[string]string{
+			"token": token,
 			"display-name":   displayName,
 			"name":           name,
 			"region-slug":    regionSlug,
@@ -83,6 +85,7 @@ func TestGetStateFromOptsKeysSnakeCase(t *testing.T) {
 	state, err := stateBuilder.BuildStateFromOpts(&driverOptions)
 
 	assert.Nil(t, err, "Not error in getStateFromOpts")
+	assert.Equal(t, token, state.Token, "Token equals")
 	assert.Equal(t, displayName, state.DisplayName, "DisplayName equals")
 	assert.Equal(t, name, state.Name, "Name equals")
 	assert.Equal(t, regionSlug, state.RegionSlug, "RegionSlug equals")
@@ -102,6 +105,7 @@ func TestGetStateFromOptsKeysSnakeCase(t *testing.T) {
 
 func TestGetStateFromOptsKeysCamelCase(t *testing.T) {
 
+	const token = "tkalal1234761"
 	const displayName = "cluster-test"
 	const name = "digitalOceanCluster"
 	const regionSlug = "nyc3"
@@ -120,8 +124,9 @@ func TestGetStateFromOptsKeysCamelCase(t *testing.T) {
 
 	driverOptions := types.DriverOptions{
 		StringOptions: map[string]string{
+			"token": token,
+			"name": name,
 			"displayName":  displayName,
-			"name":         name,
 			"regionSlug":   regionSlug,
 			"versionSlug":  versionSlug,
 			"vpcID":        vpcID,
@@ -146,6 +151,7 @@ func TestGetStateFromOptsKeysCamelCase(t *testing.T) {
 	state, err := stateBuilder.BuildStateFromOpts(&driverOptions)
 
 	assert.Nil(t, err, "Not error in getStateFromOpts")
+	assert.Equal(t, token, state.Token, "Token equals")
 	assert.Equal(t, displayName, state.DisplayName, "DisplayName equals")
 	assert.Equal(t, name, state.Name, "Name equals")
 	assert.Equal(t, regionSlug, state.RegionSlug, "RegionSlug equals")
