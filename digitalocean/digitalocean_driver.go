@@ -39,51 +39,83 @@ func (*Driver) GetDriverUpdateOptions(ctx context.Context) (*types.DriverFlags, 
 
 func (driver *Driver) Create(ctx context.Context, opts *types.DriverOptions, info *types.ClusterInfo) (*types.ClusterInfo, error) {
 	logrus.Debug("DigitalOcean.Driver.Create(...) called")
-	state, err := driver.stateBuilder.BuildStateFromOpts(opts)
+	clusterState, err := driver.stateBuilder.BuildStateFromOpts(opts)
 
 	if err != nil{
-		logrus.Debugf("Error building state: %v",err)
+		logrus.Debugf("Error building clusterState: %v",err)
 		return nil, err
 	}
 
-	if state.Token == ""{
+	if clusterState.Token == ""{
 		logrus.Debugf("Error token not found: %v",err)
 		err = errors.New("token was not reported")
 		return nil, err
 	}
 
-	digitalOceanService := driver.digitalOceanFactory(state.Token)
+	digitalOceanService := driver.digitalOceanFactory(clusterState.Token)
 
-	clusterID, err := digitalOceanService.CreateCluster(ctx,state)
+	clusterID, err := digitalOceanService.CreateCluster(ctx, clusterState)
 
 	if err != nil {
 		logrus.Debugf("Error crate cluster: %v",err)
 		return nil, err
 	}
 
-	state.ClusterID = clusterID
+	clusterState.ClusterID = clusterID
 
-	err = state.Save(info)
+	err = clusterState.Save(info)
 
 	if err != nil {
-		logrus.Debugf("Error save state: %v",err)
+		logrus.Debugf("Error save clusterState: %v",err)
+		return nil, err
+	}
+
+	err = digitalOceanService.WaitCluster(ctx,clusterID)
+
+	if err != nil {
+		logrus.Debugf("Error wait cluster: %v",err)
 		return nil, err
 	}
 
 	return info, nil
 }
 
-func (*Driver) PostCheck(ctx context.Context, clusterInfo *types.ClusterInfo) (*types.ClusterInfo, error) {
+func (driver *Driver) PostCheck(ctx context.Context, clusterInfo *types.ClusterInfo) (*types.ClusterInfo, error) {
 
-	/*kubeConfig, err := digitalOceanService.GetKubeConfig(clusterID)
+	clusterState, err := driver.stateBuilder.BuildStateFromClusterInfo(clusterInfo)
+
+	if err != nil {
+		logrus.Debugf("Error build clusterState: %v",err)
+		return nil, err
+	}
+
+	digitalOceanService := driver.digitalOceanFactory(clusterState.Token)
+
+	kubeConfig, err := digitalOceanService.GetKubeConfig(clusterState.ClusterID)
 
 	if err != nil {
 		logrus.Debugf("Error get kubeConfig %v",err)
 		return nil, err
-	} */
+	}
 
+	if len(kubeConfig.Clusters) > 0 {
+		cluster := kubeConfig.Clusters[0].Cluster
+		clusterInfo.RootCaCertificate = cluster.CertificateAuthorityData
+		clusterInfo.Endpoint = cluster.Server
+	}else{
+		return nil, errors.New("the kubeconfig file is invalid. Cluster not found")
+	}
 
-	return nil, nil
+	if len(kubeConfig.Users) > 0 {
+		clusterInfo.ServiceAccountToken = kubeConfig.Users[0].User.Token
+	}else{
+		return nil, errors.New("the kubeconfig file is invalid. Token not found")
+	}
+
+	clusterInfo.Version = clusterState.VersionSlug
+	clusterInfo.NodeCount = int64(clusterState.NodePool.Count)
+
+	return clusterInfo, nil
 }
 
 func (*Driver) Update(ctx context.Context, clusterInfo *types.ClusterInfo, opts *types.DriverOptions) (*types.ClusterInfo, error) {

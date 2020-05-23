@@ -41,6 +41,7 @@ func (state *State) Save(clusterInfo *types.ClusterInfo) error{
 
 type Builder interface {
 	BuildStateFromOpts(driverOptions *types.DriverOptions) (State, error)
+	BuildStateFromClusterInfo(clusterInfo *types.ClusterInfo)(State,error)
 }
 
 type builderImpl struct{}
@@ -87,6 +88,20 @@ func (builderImpl) BuildStateFromOpts(driverOptions *types.DriverOptions) (State
 	state.NodePool.Size = getValue(types.StringType, "node-pool-size", "nodePoolSize").(string)
 
 	return state, nil
+}
+
+func (builderImpl) BuildStateFromClusterInfo(clusterInfo *types.ClusterInfo)(State, error){
+	stateJson, ok := clusterInfo.Metadata["state"]
+	state := State{}
+
+	if !ok{
+		return state, errors.New("there is no state in the clusterInfo")
+	}
+
+	err := json.Unmarshal([]byte(stateJson),&state)
+
+	return state, err
+
 }
 
 func getLabelsFromStringSlice(labelsString *types.StringSlice) map[string]string {

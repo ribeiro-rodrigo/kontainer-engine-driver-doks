@@ -22,6 +22,7 @@ func NewDigitalOceanFactory()DigitalOceanFactory{
 type DigitalOcean interface {
 	CreateCluster(ctx context.Context, state state.State) (string, error)
 	GetKubeConfig(clusterID string)(*store.KubeConfig,error)
+	WaitCluster(ctx context.Context, clusterID string)error
 }
 
 type digitalOceanImpl struct {
@@ -57,7 +58,7 @@ func (do *digitalOceanImpl) CreateCluster(ctx context.Context, state state.State
 
 func (do *digitalOceanImpl) GetKubeConfig(clusterID string)(*store.KubeConfig,error){
 
-	clusterKubeConfig, err := do.waitAndRetryGetKubeConfig(clusterID)
+	clusterKubeConfig, _, err := do.client.Kubernetes.GetKubeConfig(context.TODO(), clusterID)
 
 	if err != nil {
 		return nil, errors.Wrapf(err,"error get kubeConfig for cluster %s",clusterID)
@@ -74,23 +75,26 @@ func (do *digitalOceanImpl) GetKubeConfig(clusterID string)(*store.KubeConfig,er
 	return kubeConfig, nil
 }
 
-func (do digitalOceanImpl) waitAndRetryGetKubeConfig(clusterID string)(*godo.KubernetesClusterConfig, error){
+func (do digitalOceanImpl) WaitCluster(ctx context.Context, clusterID string)error{
 
-	retry := 3
-	var err error
-	var clusterKubeConfig *godo.KubernetesClusterConfig
+	for {
+		cluster, _, err := do.client.Kubernetes.Get(ctx, clusterID)
 
-	for i:=0; i<retry; i++ {
-		clusterKubeConfig, _, err = do.client.Kubernetes.GetKubeConfig(context.TODO(),clusterID)
 		if err != nil {
-			retry--
-			do.sleeper.Sleep(2 * time.Second)
+			return errors.Wrap(err, "error get cluster in waitCluster")
+		}
+
+		if cluster.Status.State == godo.KubernetesClusterStatusError {
+			return errors.New("cluster is not being created")
+		}
+
+		if cluster.Status.State == godo.KubernetesClusterStatusProvisioning{
+			do.sleeper.Sleep(5 * time.Second)
 			continue
 		}
-		break
-	}
 
-	return clusterKubeConfig, nil
+		return nil
+	}
 }
 
 
