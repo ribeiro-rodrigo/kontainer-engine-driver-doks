@@ -22,7 +22,7 @@ func NewDigitalOceanFactory()DigitalOceanFactory{
 
 type DigitalOcean interface {
 	CreateCluster(ctx context.Context, state state.State) (string, error)
-	GetCluster(ctx context.Context, clusterID string) (godo.KubernetesCluster,error)
+	GetNodeCount(ctx context.Context, clusterID string) (int,error)
 	GetKubeConfig(clusterID string)(*store.KubeConfig,error)
 	WaitCluster(ctx context.Context, clusterID string)error
 }
@@ -99,16 +99,22 @@ func (do digitalOceanImpl) WaitCluster(ctx context.Context, clusterID string)err
 	}
 }
 
-func (do digitalOceanImpl) GetCluster(ctx context.Context,
-	clusterID string) (godo.KubernetesCluster, error){
+func (do digitalOceanImpl) GetNodeCount(ctx context.Context,
+	clusterID string) (int, error){
 
 	cluster, _, err := do.client.Kubernetes.Get(ctx, clusterID)
 
 	if err != nil {
-		err = errors.Wrap(err,fmt.Sprintf("error in get cluster %v",err))
+		return 0, errors.Wrap(err,fmt.Sprintf("error in get cluster %v",err))
 	}
 
-	return *cluster, err
+	count := 0
+
+	for _, pool := range cluster.NodePools{
+		count += pool.Count
+	}
+
+	return count, err
 }
 
 

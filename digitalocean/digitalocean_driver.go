@@ -112,8 +112,15 @@ func (driver *Driver) PostCheck(ctx context.Context, clusterInfo *types.ClusterI
 		return nil, errors.New("the kubeconfig file is invalid. Token not found")
 	}
 
+	currentNodeCount, err := digitalOceanService.GetNodeCount(ctx, clusterState.ClusterID)
+
+	if err != nil {
+		logrus.Debugf("Error get node count %v",err)
+		return nil, err
+	}
+
 	clusterInfo.Version = clusterState.VersionSlug
-	clusterInfo.NodeCount = int64(clusterState.NodePool.Count)
+	clusterInfo.NodeCount = int64(currentNodeCount)
 
 	return clusterInfo, nil
 }
