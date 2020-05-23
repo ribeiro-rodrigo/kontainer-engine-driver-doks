@@ -2,14 +2,18 @@ package options
 
 import "github.com/rancher/kontainer-engine/types"
 
-type Builder struct {
+type Builder interface {
+	BuildCreateOptions() *types.DriverFlags
+}
+
+type builderImpl struct {
 }
 
 func NewBuilder() Builder {
-	return Builder{}
+	return builderImpl{}
 }
 
-func (*Builder) BuildCreateOptions() *types.DriverFlags {
+func (builderImpl) BuildCreateOptions() *types.DriverFlags {
 
 	builder := flagBuilder()
 
