@@ -39,13 +39,17 @@ func (state *State) Save(clusterInfo *types.ClusterInfo) error{
 	return nil
 }
 
-type Builder struct{}
-
-func NewBuilder() Builder {
-	return Builder{}
+type Builder interface {
+	BuildStateFromOpts(driverOptions *types.DriverOptions) (State, error)
 }
 
-func (*Builder) BuildStateFromOpts(driverOptions *types.DriverOptions) (State, error) {
+type builderImpl struct{}
+
+func NewBuilder() Builder {
+	return builderImpl{}
+}
+
+func (builderImpl) BuildStateFromOpts(driverOptions *types.DriverOptions) (State, error) {
 
 	state := State{
 		Tags:     []string{},
