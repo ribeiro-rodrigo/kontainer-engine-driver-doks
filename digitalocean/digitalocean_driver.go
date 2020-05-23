@@ -135,20 +135,19 @@ func (*Driver) Remove(ctx context.Context, clusterInfo *types.ClusterInfo) error
 }
 
 func (*Driver) GetVersion(ctx context.Context, clusterInfo *types.ClusterInfo) (*types.KubernetesVersion, error) {
-	return nil, nil
+	return nil, errors.New("operation change version not implemented")
 }
 
 func (*Driver) SetVersion(ctx context.Context, clusterInfo *types.ClusterInfo, version *types.KubernetesVersion) error {
-	return nil
+	return errors.New("operation change version not implemented")
 }
 
 func (*Driver) GetClusterSize(ctx context.Context, clusterInfo *types.ClusterInfo) (*types.NodeCount, error) {
-	return nil, nil
+	return nil, errors.New("operation resize cluster size  not implemented")
 }
 
 func (*Driver) SetClusterSize(ctx context.Context, clusterInfo *types.ClusterInfo, count *types.NodeCount) error {
-
-	return nil
+	return errors.New("operation resize cluster size  not implemented")
 }
 
 func (*Driver) GetCapabilities(ctx context.Context) (*types.Capabilities, error) {
@@ -156,15 +155,15 @@ func (*Driver) GetCapabilities(ctx context.Context) (*types.Capabilities, error)
 }
 
 func (*Driver) RemoveLegacyServiceAccount(ctx context.Context, clusterInfo *types.ClusterInfo) error {
-	return nil
+	return errors.New("operation remove service account not implemented")
 }
 
 func (*Driver) ETCDSave(ctx context.Context, clusterInfo *types.ClusterInfo, opts *types.DriverOptions, snapshotName string) error {
-	return nil
+	return errors.New("etcd backup operations are not implemented")
 }
 
 func (*Driver) ETCDRestore(ctx context.Context, clusterInfo *types.ClusterInfo, opts *types.DriverOptions, snapshotName string) (*types.ClusterInfo, error) {
-	return nil, nil
+	return nil, errors.New("etcd backup operations are not implemented")
 }
 
 func (*Driver) GetK8SCapabilities(ctx context.Context, opts *types.DriverOptions) (*types.K8SCapabilities, error) {
@@ -172,6 +171,6 @@ func (*Driver) GetK8SCapabilities(ctx context.Context, opts *types.DriverOptions
 }
 
 func (*Driver) ETCDRemoveSnapshot(ctx context.Context, clusterInfo *types.ClusterInfo, opts *types.DriverOptions, snapshotName string) error {
-	return nil
+	return errors.New("etcd backup operations are not implemented")
 }
 
