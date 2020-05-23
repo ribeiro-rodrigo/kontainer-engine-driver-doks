@@ -17,17 +17,22 @@ func NewDigitalOceanFactory()DigitalOceanFactory{
 	}
 }
 
-type DigitalOcean struct {
+type DigitalOcean interface {
+	CreateCluster(ctx context.Context, state state.State) (string, error)
+	GetKubeConfig(clusterID string)(*store.KubeConfig,error)
+}
+
+type digitalOceanImpl struct {
 	client *godo.Client
 }
 
 func newDigitalOcean(token string) DigitalOcean {
-	return DigitalOcean{
+	return &digitalOceanImpl{
 		client: godo.NewFromToken(token),
 	}
 }
 
-func (do *DigitalOcean) CreateCluster(ctx context.Context, state state.State) (string, error){
+func (do *digitalOceanImpl) CreateCluster(ctx context.Context, state state.State) (string, error){
 	createClusterRequest := &godo.KubernetesClusterCreateRequest{
 		Name: state.Name,
 		Tags: state.Tags,
@@ -46,7 +51,7 @@ func (do *DigitalOcean) CreateCluster(ctx context.Context, state state.State) (s
 	return cluster.ID, nil
 }
 
-func (do *DigitalOcean) GetKubeConfig(clusterID string)(*store.KubeConfig,error){
+func (do *digitalOceanImpl) GetKubeConfig(clusterID string)(*store.KubeConfig,error){
 
 	clusterKubeConfig, _, err := do.client.Kubernetes.GetKubeConfig(context.TODO(),clusterID)
 
