@@ -135,3 +135,4 @@ func (*Driver) GetK8SCapabilities(ctx context.Context, opts *types.DriverOptions
 func (*Driver) ETCDRemoveSnapshot(ctx context.Context, clusterInfo *types.ClusterInfo, opts *types.DriverOptions, snapshotName string) error {
 	return nil
 }
+

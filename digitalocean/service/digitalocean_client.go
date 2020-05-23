@@ -6,14 +6,16 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	"github.com/rancher/kontainer-engine/store"
+	"github.com/ribeiro-rodrigo/kontainer-engine-driver-digitalocean/digitalocean/helper"
 	"github.com/ribeiro-rodrigo/kontainer-engine-driver-digitalocean/digitalocean/state"
+	"time"
 )
 
 type DigitalOceanFactory func(token string)DigitalOcean
 
 func NewDigitalOceanFactory()DigitalOceanFactory{
 	return func(token string)DigitalOcean{
-		return newDigitalOcean(token)
+		return newDigitalOcean(token, helper.NewTimerSleeper())
 	}
 }
 
@@ -24,11 +26,13 @@ type DigitalOcean interface {
 
 type digitalOceanImpl struct {
 	client *godo.Client
+	sleeper helper.Sleeper
 }
 
-func newDigitalOcean(token string) DigitalOcean {
+func newDigitalOcean(token string, sleeper helper.Sleeper) DigitalOcean {
 	return &digitalOceanImpl{
 		client: godo.NewFromToken(token),
+		sleeper: sleeper,
 	}
 }
 
@@ -53,7 +57,7 @@ func (do *digitalOceanImpl) CreateCluster(ctx context.Context, state state.State
 
 func (do *digitalOceanImpl) GetKubeConfig(clusterID string)(*store.KubeConfig,error){
 
-	clusterKubeConfig, _, err := do.client.Kubernetes.GetKubeConfig(context.TODO(),clusterID)
+	clusterKubeConfig, err := do.waitAndRetryGetKubeConfig(clusterID)
 
 	if err != nil {
 		return nil, errors.Wrapf(err,"error get kubeConfig for cluster %s",clusterID)
@@ -68,6 +72,25 @@ func (do *digitalOceanImpl) GetKubeConfig(clusterID string)(*store.KubeConfig,er
 	}
 
 	return kubeConfig, nil
+}
+
+func (do digitalOceanImpl) waitAndRetryGetKubeConfig(clusterID string)(*godo.KubernetesClusterConfig, error){
+
+	retry := 3
+	var err error
+	var clusterKubeConfig *godo.KubernetesClusterConfig
+
+	for i:=0; i<retry; i++ {
+		clusterKubeConfig, _, err = do.client.Kubernetes.GetKubeConfig(context.TODO(),clusterID)
+		if err != nil {
+			retry--
+			do.sleeper.Sleep(2 * time.Second)
+			continue
+		}
+		break
+	}
+
+	return clusterKubeConfig, nil
 }
 
 
