@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/digitalocean/godo"
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
@@ -21,6 +22,7 @@ func NewDigitalOceanFactory()DigitalOceanFactory{
 
 type DigitalOcean interface {
 	CreateCluster(ctx context.Context, state state.State) (string, error)
+	GetCluster(ctx context.Context, clusterID string) (godo.KubernetesCluster,error)
 	GetKubeConfig(clusterID string)(*store.KubeConfig,error)
 	WaitCluster(ctx context.Context, clusterID string)error
 }
@@ -95,6 +97,18 @@ func (do digitalOceanImpl) WaitCluster(ctx context.Context, clusterID string)err
 
 		return nil
 	}
+}
+
+func (do digitalOceanImpl) GetCluster(ctx context.Context,
+	clusterID string) (godo.KubernetesCluster, error){
+
+	cluster, _, err := do.client.Kubernetes.Get(ctx, clusterID)
+
+	if err != nil {
+		err = errors.Wrap(err,fmt.Sprintf("error in get cluster %v",err))
+	}
+
+	return *cluster, err
 }
 
 
