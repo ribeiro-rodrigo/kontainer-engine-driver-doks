@@ -10,27 +10,34 @@ import (
 
 type OptionsBuilderMock struct{
 	mock.Mock
+	buildCreateOptionsMock func()*types.DriverFlags
 }
-
-var returnBuildCreateOptionsMock = &types.DriverFlags{}
 
 func (m *OptionsBuilderMock) BuildCreateOptions() *types.DriverFlags{
 	m.Called()
-	return returnBuildCreateOptionsMock
+	return m.buildCreateOptionsMock()
 }
 
 func TestGetDriverCreateOptions(t *testing.T) {
-	builderMock := new(OptionsBuilderMock)
+
+	returnBuildCreateOptions := &types.DriverFlags{}
+
+	builderMock := &OptionsBuilderMock{
+		buildCreateOptionsMock: func() *types.DriverFlags {
+			return returnBuildCreateOptions
+		},
+	}
 
 	driver := Driver{
 		optionsBuilder: builderMock,
 	}
 
-	builderMock.On("BuildCreateOptions").Return(returnBuildCreateOptionsMock)
+	builderMock.On("BuildCreateOptions").Return(returnBuildCreateOptions)
 
 	flags, err := driver.GetDriverCreateOptions(context.TODO())
 
 	assert.NoError(t, err, "GetDriverCreateOptions not error")
-	assert.Equal(t, returnBuildCreateOptionsMock, flags, "Flags mock equals")
+	assert.Equal(t, returnBuildCreateOptions, flags, "Flags mock equals")
 	builderMock.AssertExpectations(t)
 }
+
