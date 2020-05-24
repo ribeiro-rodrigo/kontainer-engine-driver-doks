@@ -70,7 +70,7 @@ func (driver *Driver) Create(ctx context.Context, opts *types.DriverOptions, inf
 		return nil, err
 	}
 
-	err = digitalOceanService.WaitCluster(ctx,clusterID)
+	err = digitalOceanService.WaitClusterCreated(ctx,clusterID)
 
 	if err != nil {
 		logrus.Debugf("Error wait cluster: %v",err)
@@ -81,6 +81,7 @@ func (driver *Driver) Create(ctx context.Context, opts *types.DriverOptions, inf
 }
 
 func (driver *Driver) PostCheck(ctx context.Context, clusterInfo *types.ClusterInfo) (*types.ClusterInfo, error) {
+	logrus.Debug("DigitalOcean.Driver.PostCheck(...) called")
 
 	clusterState, err := driver.stateBuilder.BuildStateFromClusterInfo(clusterInfo)
 
@@ -130,7 +131,32 @@ func (*Driver) Update(ctx context.Context, clusterInfo *types.ClusterInfo, opts 
 	return nil, nil
 }
 
-func (*Driver) Remove(ctx context.Context, clusterInfo *types.ClusterInfo) error {
+func (driver *Driver) Remove(ctx context.Context, clusterInfo *types.ClusterInfo) error {
+	logrus.Debug("DigitalOcean.Driver.Remove(...) called")
+
+	clusterState, err := driver.stateBuilder.BuildStateFromClusterInfo(clusterInfo)
+
+	if err != nil {
+		logrus.Debugf("Error build state %v",err)
+		return err
+	}
+
+	digitalOceanService := driver.digitalOceanFactory(clusterState.Token)
+
+	err = digitalOceanService.DeleteCluster(ctx, clusterState.ClusterID)
+
+	if err != nil {
+		logrus.Debugf("Error delete cluster %v",err)
+		return err
+	}
+
+	err = digitalOceanService.WaitClusterDeleted(ctx, clusterState.ClusterID)
+
+	if err != nil {
+		logrus.Debugf("Error wait delete cluster %v",err)
+		return err
+	}
+
 	return nil
 }
 

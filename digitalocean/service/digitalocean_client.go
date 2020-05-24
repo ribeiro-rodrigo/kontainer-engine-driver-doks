@@ -22,9 +22,11 @@ func NewDigitalOceanFactory()DigitalOceanFactory{
 
 type DigitalOcean interface {
 	CreateCluster(ctx context.Context, state state.State) (string, error)
+	DeleteCluster(ctx context.Context, clusterID string)error
 	GetNodeCount(ctx context.Context, clusterID string) (int,error)
 	GetKubeConfig(clusterID string)(*store.KubeConfig,error)
-	WaitCluster(ctx context.Context, clusterID string)error
+	WaitClusterCreated(ctx context.Context, clusterID string)error
+	WaitClusterDeleted(ctx context.Context, clusterID string)error
 }
 
 type digitalOceanImpl struct {
@@ -58,6 +60,16 @@ func (do *digitalOceanImpl) CreateCluster(ctx context.Context, state state.State
 	return cluster.ID, nil
 }
 
+func (do *digitalOceanImpl) DeleteCluster(ctx context.Context, clusterID string)error{
+	_, err := do.client.Kubernetes.Delete(ctx, clusterID)
+
+	if err != nil {
+		return errors.Wrap(err,"error in delete cluster")
+	}
+
+	return nil
+}
+
 func (do *digitalOceanImpl) GetKubeConfig(clusterID string)(*store.KubeConfig,error){
 
 	clusterKubeConfig, _, err := do.client.Kubernetes.GetKubeConfig(context.TODO(), clusterID)
@@ -77,26 +89,19 @@ func (do *digitalOceanImpl) GetKubeConfig(clusterID string)(*store.KubeConfig,er
 	return kubeConfig, nil
 }
 
-func (do digitalOceanImpl) WaitCluster(ctx context.Context, clusterID string)error{
+func (do digitalOceanImpl) WaitClusterCreated(ctx context.Context, clusterID string)error{
+	_, err := do.waitCluster(ctx, clusterID, godo.KubernetesClusterStatusRunning)
+	return err
+}
 
-	for {
-		cluster, _, err := do.client.Kubernetes.Get(ctx, clusterID)
+func (do digitalOceanImpl) WaitClusterDeleted(ctx context.Context, clusterID string)error{
+	response, err := do.waitCluster(ctx, clusterID, godo.KubernetesClusterStatusDeleted)
 
-		if err != nil {
-			return errors.Wrap(err, "error get cluster in waitCluster")
-		}
-
-		if cluster.Status.State == godo.KubernetesClusterStatusError {
-			return errors.New("cluster is not being created")
-		}
-
-		if cluster.Status.State == godo.KubernetesClusterStatusProvisioning{
-			do.sleeper.Sleep(5 * time.Second)
-			continue
-		}
-
+	if response != nil && response.StatusCode == 404 {
 		return nil
 	}
+
+	return err
 }
 
 func (do digitalOceanImpl) GetNodeCount(ctx context.Context,
@@ -115,6 +120,31 @@ func (do digitalOceanImpl) GetNodeCount(ctx context.Context,
 	}
 
 	return count, err
+}
+
+func (do digitalOceanImpl) waitCluster(ctx context.Context, clusterID string,
+	statusState godo.KubernetesClusterStatusState)(*godo.Response, error){
+
+	for {
+		cluster, response, err := do.client.Kubernetes.Get(ctx, clusterID)
+
+		if err != nil {
+			err = errors.Wrap(err, "error get cluster in waitCluster")
+			return response, err
+		}
+
+		if cluster.Status.State == godo.KubernetesClusterStatusError {
+			err = errors.New("cluster status error")
+			return response, err
+		}
+
+		if cluster.Status.State != statusState{
+			do.sleeper.Sleep(5 * time.Second)
+			continue
+		}
+
+		return response, err
+	}
 }
 
 
