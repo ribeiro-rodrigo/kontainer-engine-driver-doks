@@ -2,6 +2,7 @@ package digitalocean
 
 import (
 	"context"
+	"errors"
 	"github.com/digitalocean/godo"
 	"github.com/rancher/kontainer-engine/store"
 	"github.com/rancher/kontainer-engine/types"
@@ -154,4 +155,29 @@ func TestDriverCreate(t *testing.T) {
 	_, ok  := info.Metadata["state"]
 
 	assert.True(t, ok, "State serialized in info")
+}
+
+func TestDriverCreateErrorInBuildStateFromOpts(t *testing.T) {
+
+	returnState := state.State{}
+	returnError := errors.New("error")
+
+	stateBuilderMock := &StateBuilderMock{
+		buildStateFromOptsMock: func(do *types.DriverOptions) (state.State, error) {
+			return returnState, returnError
+		},
+	}
+
+	driver := Driver{
+		stateBuilder: stateBuilderMock,
+	}
+
+	options := &types.DriverOptions{}
+
+	stateBuilderMock.On("BuildStateFromOpts",options).Return(returnState, returnError)
+
+	_, err := driver.Create(context.TODO(), options ,&types.ClusterInfo{})
+
+	stateBuilderMock.AssertExpectations(t)
+	assert.Error(t, err, "Error in create cluster")
 }
