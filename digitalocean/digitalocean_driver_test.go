@@ -183,6 +183,35 @@ func TestDriverCreateErrorInBuildStateFromOpts(t *testing.T) {
 }
 
 func TestDriverCreateWithoutToken(t *testing.T){
+	returnState := state.State{
+		DisplayName: "cluster-test",
+		Name:        "my-cluster",
+		RegionSlug:  "1.17.5-do.0",
+		NodePool: &godo.KubernetesNodePoolCreateRequest{
+			Name:  "node-pool-1",
+			Size:  "s-2vcpu-2gb",
+			Count: 5,
+		},
+	}
+
+	stateBuilderMock := &StateBuilderMock{
+		buildStateFromOptsMock: func(_ *types.DriverOptions) (state.State, error) {
+			return returnState, nil
+		},
+	}
+
+	driver := Driver{
+		stateBuilder: stateBuilderMock,
+	}
+
+	options :=  &types.DriverOptions{}
+
+	stateBuilderMock.On("BuildStateFromOpts",options).Return(returnState, nil)
+
+	_, err := driver.Create(context.TODO(), &types.DriverOptions{}, &types.ClusterInfo{})
+
+	stateBuilderMock.AssertExpectations(t)
+	assert.Error(t,err, "Error in create cluster: not token")
 
 }
 
