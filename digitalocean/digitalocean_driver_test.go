@@ -313,3 +313,19 @@ func TestDriverCreateErrorInWaitClusterCreated(t *testing.T){
 
 }
 
+func TestRemoveCluster(t *testing.T){
+
+}
+
+func TestRemoveClusterErrorInBuildState(t *testing.T){
+
+}
+
+func TestRemoveClusterErrorInDigitalOceanDelete(t *testing.T){
+
+}
+
+func TestRemoveClusterErrorInWaitDeleted(t *testing.T){
+
+}
+
