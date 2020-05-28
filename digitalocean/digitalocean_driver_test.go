@@ -261,10 +261,6 @@ func TestDriverCreateErrorInDigitalOceanServiceCreate(t *testing.T){
 
 }
 
-func TestDriverCreateErrorInSaveState(t *testing.T){
-
-}
-
 func TestDriverCreateErrorInWaitClusterCreated(t *testing.T){
 
 }
