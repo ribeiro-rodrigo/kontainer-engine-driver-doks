@@ -314,7 +314,55 @@ func TestDriverCreateErrorInWaitClusterCreated(t *testing.T){
 }
 
 func TestRemoveCluster(t *testing.T){
+	returnState := state.State{
+		Token:       "a405b7bd3e0d6193f605368102a2deafe4067ed542c92166c6d772fe7e2df019",
+		DisplayName: "cluster-test",
+		Name:        "my-cluster",
+		RegionSlug:  "1.17.5-do.0",
+		NodePool: &godo.KubernetesNodePoolCreateRequest{
+			Name:  "node-pool-1",
+			Size:  "s-2vcpu-2gb",
+			Count: 5,
+		},
+	}
 
+	stateBuilderMock := &StateBuilderMock{
+		buildStateFromClusterInfo: func(_ *types.ClusterInfo) (state.State, error) {
+			return returnState, nil
+		},
+	}
+
+	digitalOceanMock := DigitalOceanMock{
+		deleteClusterMock: func(_ context.Context, _ string) error {
+			return nil
+		},
+		waitClusterDeleted: func(_ context.Context, _ string) error {
+			return nil
+		},
+	}
+
+	digitalOceanFactory := func(token string)service.DigitalOcean{
+		return &digitalOceanMock
+	}
+
+	driver := Driver{
+		digitalOceanFactory: digitalOceanFactory,
+		stateBuilder: stateBuilderMock,
+	}
+
+	clusterInfo := &types.ClusterInfo{}
+	ctx := context.TODO()
+
+	stateBuilderMock.On("BuildStateFromClusterInfo", clusterInfo).Return(returnState)
+	digitalOceanMock.On("DeleteCluster",ctx, returnState.ClusterID).Return(nil)
+	digitalOceanMock.On("WaitClusterDeleted",ctx, returnState.ClusterID).Return(nil)
+
+	err := driver.Remove(ctx, clusterInfo)
+
+	stateBuilderMock.AssertExpectations(t)
+	digitalOceanMock.AssertExpectations(t)
+
+	assert.NoError(t, err, "Not error in remove cluster")
 }
 
 func TestRemoveClusterErrorInBuildState(t *testing.T){
