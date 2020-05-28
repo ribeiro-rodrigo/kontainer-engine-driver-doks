@@ -262,6 +262,54 @@ func TestDriverCreateErrorInDigitalOceanServiceCreate(t *testing.T){
 }
 
 func TestDriverCreateErrorInWaitClusterCreated(t *testing.T){
+	returnState := state.State{
+		Token:       "a405b7bd3e0d6193f605368102a2deafe4067ed542c92166c6d772fe7e2df019",
+		DisplayName: "cluster-test",
+		Name:        "my-cluster",
+		RegionSlug:  "1.17.5-do.0",
+		NodePool: &godo.KubernetesNodePoolCreateRequest{
+			Name:  "node-pool-1",
+			Size:  "s-2vcpu-2gb",
+			Count: 5,
+		},
+	}
+
+	stateBuilderMock := &StateBuilderMock{
+		buildStateFromOptsMock: func(do *types.DriverOptions) (state.State, error) {
+			return returnState,nil
+		},
+	}
+
+	returnClusterID := "abcd"
+
+	digitalOceanMock := &DigitalOceanMock{
+		createClusterMock: func(_ context.Context, _ state.State) (string, error) {
+			return returnClusterID, nil
+		},
+		waitClusterCreated: func(_ context.Context, _ string) error {
+			return errors.New("error in wait cluster")
+		},
+	}
+
+	driver := Driver{
+		stateBuilder: stateBuilderMock,
+		digitalOceanFactory: func(token string) service.DigitalOcean {return digitalOceanMock},
+	}
+
+	options := &types.DriverOptions{}
+	ctx := context.TODO()
+	clusterInfo := &types.ClusterInfo{}
+
+	stateBuilderMock.On("BuildStateFromOpts",options).Return(returnState)
+	digitalOceanMock.On("CreateCluster", ctx, returnState).Return(returnClusterID,nil)
+	digitalOceanMock.On("WaitClusterCreated",ctx,returnClusterID).Return(nil)
+
+	_, err := driver.Create(ctx, options , clusterInfo)
+
+	digitalOceanMock.AssertExpectations(t)
+	stateBuilderMock.AssertExpectations(t)
+
+	assert.Error(t, err, "error in wait cluster created")
 
 }
 
