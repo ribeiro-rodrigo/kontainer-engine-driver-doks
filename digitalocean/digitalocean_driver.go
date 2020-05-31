@@ -28,12 +28,12 @@ func NewDriver() Driver {
 	return driver
 }
 
-func (driver *Driver) GetDriverCreateOptions(ctx context.Context) (*types.DriverFlags, error) {
+func (driver *Driver) GetDriverCreateOptions(_ context.Context) (*types.DriverFlags, error) {
 	logrus.Debug("DigitalOcean.Driver.GetDriverCreateOptions(...) called")
 	return driver.optionsBuilder.BuildCreateOptions(), nil
 }
 
-func (driver *Driver) GetDriverUpdateOptions(ctx context.Context) (*types.DriverFlags, error) {
+func (driver *Driver) GetDriverUpdateOptions(_ context.Context) (*types.DriverFlags, error) {
 	logrus.Debug("DigitalOcean.Driver.GetDriverUpdateOptions(...) called")
 	return driver.optionsBuilder.BuildUpdateOptions(), nil
 }
