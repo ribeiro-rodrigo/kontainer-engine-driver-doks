@@ -5,7 +5,6 @@ import (
 	"github.com/pkg/errors"
 	"strings"
 
-	"github.com/digitalocean/godo"
 	"github.com/rancher/kontainer-engine/drivers/options"
 	"github.com/rancher/kontainer-engine/types"
 )
@@ -16,11 +15,22 @@ type State struct {
 	DisplayName string `json:"display_name,omitempty"`
 	Name        string `json:"name,omitempty"`
 	Tags        []string `json:"tags,omitempty"`
-	AutoUpgrade bool `json:"auto_upgrade,omitempty"`
+	AutoUpgrade *bool `json:"auto_upgrade,omitempty"`
 	RegionSlug  string `json:"region_slug,omitempty"`
 	VPCID       string `json:"vpc_id,omitempty"`
 	VersionSlug string `json:"version_slug,omitempty"`
-	NodePool    *godo.KubernetesNodePoolCreateRequest `json:"node_pool,omitempty"`
+	NodePool    NodePool `json:"node_pool,omitempty"`
+}
+
+type NodePool struct {
+	Name      string            `json:"name,omitempty"`
+	Size      string            `json:"size,omitempty"`
+	Count     int               `json:"count,omitempty"`
+	Tags      []string          `json:"tags,omitempty"`
+	Labels    map[string]string `json:"labels,omitempty"`
+	AutoScale *bool              `json:"auto_scale,omitempty"`
+	MinNodes  int               `json:"min_nodes,omitempty"`
+	MaxNodes  int               `json:"max_nodes,omitempty"`
 }
 
 func (state *State) Save(clusterInfo *types.ClusterInfo) error{
@@ -54,7 +64,7 @@ func (builderImpl) BuildStateFromOpts(driverOptions *types.DriverOptions) (State
 
 	state := State{
 		Tags:     []string{},
-		NodePool: &godo.KubernetesNodePoolCreateRequest{},
+		NodePool: NodePool{},
 	}
 
 	getValue := func(typ string, keys ...string) interface{} {
@@ -65,15 +75,16 @@ func (builderImpl) BuildStateFromOpts(driverOptions *types.DriverOptions) (State
 	state.DisplayName = getValue(types.StringType, "display-name", "displayName").(string)
 	state.Name = getValue(types.StringType, "name").(string)
 	state.Tags = getTagsFromStringSlice(getValue(types.StringSliceType, "tags").(*types.StringSlice))
-	state.AutoUpgrade = getValue(types.BoolType, "auto-upgraded", "autoUpgraded").(bool)
+	state.AutoUpgrade = getBoolPointer(getValue(types.BoolPointerType, "auto-upgraded", "autoUpgraded"))
 	state.RegionSlug = getValue(types.StringType, "region-slug", "regionSlug").(string)
 	state.VPCID = getValue(types.StringType, "vpc-id", "vpcID").(string)
 	state.VersionSlug = getValue(types.StringType, "version-slug", "versionSlug").(string)
-
 	state.NodePool.Name = getValue(types.StringType, "node-pool-name", "nodePoolName").(string)
-	state.NodePool.AutoScale = getValue(types.BoolType, "node-pool-autoscale", "nodePoolAutoscale").(bool)
+	state.NodePool.AutoScale = getBoolPointer(
+		getValue(types.BoolPointerType, "node-pool-autoscale", "nodePoolAutoscale"),
+	)
 
-	if state.NodePool.AutoScale {
+	if state.NodePool.AutoScale != nil && *state.NodePool.AutoScale {
 		state.NodePool.MaxNodes = int(getValue(types.IntType, "node-pool-max", "nodePoolMax").(int64))
 		state.NodePool.MinNodes = int(getValue(types.IntType, "node-pool-min", "nodePoolMin").(int64))
 	}
@@ -110,6 +121,14 @@ func getTagsFromStringSlice(tagsString *types.StringSlice)[]string{
 	}
 
 	return tagsString.Value
+}
+
+func getBoolPointer(boolPointer interface{})*bool{
+
+	if boolPointer == nil {
+		return nil
+	}
+	return boolPointer.(*bool)
 }
 
 func getLabelsFromStringSlice(labelsString *types.StringSlice) map[string]string {
