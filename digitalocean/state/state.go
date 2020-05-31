@@ -64,7 +64,7 @@ func (builderImpl) BuildStateFromOpts(driverOptions *types.DriverOptions) (State
 	state.Token = getValue(types.StringType, "token").(string)
 	state.DisplayName = getValue(types.StringType, "display-name", "displayName").(string)
 	state.Name = getValue(types.StringType, "name").(string)
-	state.Tags = getValue(types.StringSliceType, "tags").(*types.StringSlice).Value
+	state.Tags = getTagsFromStringSlice(getValue(types.StringSliceType, "tags").(*types.StringSlice))
 	state.AutoUpgrade = getValue(types.BoolType, "auto-upgraded", "autoUpgraded").(bool)
 	state.RegionSlug = getValue(types.StringType, "region-slug", "regionSlug").(string)
 	state.VPCID = getValue(types.StringType, "vpc-id", "vpcID").(string)
@@ -102,6 +102,14 @@ func (builderImpl) BuildStateFromClusterInfo(clusterInfo *types.ClusterInfo)(Sta
 
 	return state, err
 
+}
+
+func getTagsFromStringSlice(tagsString *types.StringSlice)[]string{
+	if tagsString.Value == nil {
+		return []string{}
+	}
+
+	return tagsString.Value
 }
 
 func getLabelsFromStringSlice(labelsString *types.StringSlice) map[string]string {
