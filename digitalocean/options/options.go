@@ -133,6 +133,10 @@ func (builderImpl) BuildCreateOptions() *types.DriverFlags {
 	)
 }
 
+func BuildUpdateOptions() *types.DriverFlags{
+	return nil
+}
+
 func flagBuilder() func(name, typ, usage string, def *types.Default) *types.DriverFlags {
 	flags := &types.DriverFlags{
 		Options: make(map[string]*types.Flag),
