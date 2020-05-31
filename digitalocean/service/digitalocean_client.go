@@ -45,10 +45,10 @@ func (do *digitalOceanImpl) CreateCluster(ctx context.Context, state state.State
 	createClusterRequest := &godo.KubernetesClusterCreateRequest{
 		Name: state.Name,
 		Tags: state.Tags,
-		AutoUpgrade: state.AutoUpgrade,
+		AutoUpgrade: *state.AutoUpgrade,
 		RegionSlug: state.RegionSlug,
 		VersionSlug: state.VersionSlug,
-		NodePools: []*godo.KubernetesNodePoolCreateRequest{state.NodePool},
+		NodePools: do.buildNodePoolCreateRequest(state.NodePool),
 	}
 
 	cluster, _, err := do.client.Kubernetes.Create(ctx,createClusterRequest)
@@ -144,6 +144,21 @@ func (do digitalOceanImpl) waitCluster(ctx context.Context, clusterID string,
 		}
 
 		return response, err
+	}
+}
+
+func (do digitalOceanImpl) buildNodePoolCreateRequest(nodePool state.NodePool) []*godo.KubernetesNodePoolCreateRequest{
+	return []*godo.KubernetesNodePoolCreateRequest{
+		{
+			Name: nodePool.Name,
+			Size: nodePool.Size,
+			Count: nodePool.Count,
+			Tags: nodePool.Tags,
+			Labels: nodePool.Labels,
+			AutoScale: *nodePool.AutoScale,
+			MinNodes: nodePool.MinNodes,
+			MaxNodes: nodePool.MaxNodes,
+		},
 	}
 }
 
