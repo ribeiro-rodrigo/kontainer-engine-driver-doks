@@ -31,7 +31,7 @@ func TestGetCreateOptions(t *testing.T) {
 	autoUpgradeFlag, ok := options.Options["auto-upgraded"]
 
 	assert.True(t, ok, "AutoUpgrade flag is present")
-	assert.Equal(t, types.BoolType, autoUpgradeFlag.GetType(), "AutoUpgrade type is bool")
+	assert.Equal(t, types.BoolPointerType, autoUpgradeFlag.GetType(), "AutoUpgrade type is bool")
 
 	regionSlugFlag, ok := options.Options["region-slug"]
 
@@ -51,7 +51,7 @@ func TestGetCreateOptions(t *testing.T) {
 	nodePoolAutoScaleFlag, ok := options.Options["node-pool-autoscale"]
 
 	assert.True(t, ok, "NodePoolAutoScale flag is present")
-	assert.Equal(t, types.BoolType, nodePoolAutoScaleFlag.GetType(), "NodePoolAutoScale type is bool")
+	assert.Equal(t, types.BoolPointerType, nodePoolAutoScaleFlag.GetType(), "NodePoolAutoScale type is bool")
 
 	nodePoolCountFlag, ok := options.Options["node-pool-count"]
 

@@ -41,7 +41,7 @@ func (builderImpl) BuildCreateOptions() *types.DriverFlags {
 
 	builder(
 		"auto-upgraded",
-		types.BoolType,
+		types.BoolPointerType,
 		"Automatically updates Kubernetes version",
 		&types.Default{
 			DefaultBool: false,
@@ -73,7 +73,7 @@ func (builderImpl) BuildCreateOptions() *types.DriverFlags {
 
 	builder(
 		"node-pool-autoscale",
-		types.BoolType,
+		types.BoolPointerType,
 		"Enables auto scaling group",
 		&types.Default{
 			DefaultBool: false,
