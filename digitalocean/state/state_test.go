@@ -192,3 +192,29 @@ func TestGetStateFromOptsKeysNotAutoScale(t *testing.T) {
 	assert.Equal(t, nodePoolCount, state.NodePool.Count)
 
 }
+
+func TestGetStateWithNilValues(t *testing.T){
+	driverOptions := types.DriverOptions{}
+
+	state, err := stateBuilder.BuildStateFromOpts(&driverOptions)
+
+	assert.Nil(t, err, "Not error in getStateFromOpts")
+	assert.Equal(t, "", state.Name, "Name empty value")
+	assert.Equal(t, "", state.Token, "Token equals")
+	assert.Equal(t, "", state.DisplayName, "DisplayName equals")
+	assert.Equal(t, "", state.Name, "Name equals")
+	assert.Equal(t, "", state.RegionSlug, "RegionSlug equals")
+	assert.Equal(t, "", state.VersionSlug, "VersionSlug equals")
+	assert.Equal(t, "", state.VPCID, "VPCID equals")
+	assert.Equal(t, "", state.NodePool.Name, "nodePoolName equals")
+	assert.Equal(t, "", state.NodePool.Size, "nodePoolSize equals")
+	assert.Equal(t, false, state.AutoUpgrade, "autoUpgraded equals")
+	assert.Equal(t, false, state.NodePool.AutoScale, "nodePoolAutoScale equals")
+	assert.Equal(t, []string{}, state.Tags, "tags equals")
+	assert.Equal(t, map[string]string{}, state.NodePool.Labels, "nodePoolLabels equals")
+	assert.Equal(t, 0, state.NodePool.Count, "nodePoolCount equals")
+	assert.Equal(t, 0, state.NodePool.MinNodes, "nodePoolMin equals")
+	assert.Equal(t, 0, state.NodePool.MaxNodes, "nodePoolMax equals")
+}
+
+
