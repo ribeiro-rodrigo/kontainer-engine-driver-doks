@@ -3,7 +3,6 @@ package digitalocean
 import (
 	"context"
 	"errors"
-	"github.com/digitalocean/godo"
 	"github.com/rancher/kontainer-engine/store"
 	"github.com/rancher/kontainer-engine/types"
 	"github.com/ribeiro-rodrigo/kontainer-engine-driver-digitalocean/digitalocean/service"
@@ -17,11 +16,17 @@ import (
 type OptionsBuilderMock struct{
 	mock.Mock
 	buildCreateOptionsMock func()*types.DriverFlags
+	buildUpdateOptionsMock func()*types.DriverFlags
 }
 
 func (m *OptionsBuilderMock) BuildCreateOptions() *types.DriverFlags{
 	m.Called()
 	return m.buildCreateOptionsMock()
+}
+
+func (m *OptionsBuilderMock) BuildUpdateOptions() *types.DriverFlags{
+	m.Called()
+	return m.buildUpdateOptionsMock()
 }
 
 type StateBuilderMock struct {
@@ -108,7 +113,7 @@ func TestDriverCreate(t *testing.T) {
 		DisplayName: "cluster-test",
 		Name:        "my-cluster",
 		RegionSlug:  "1.17.5-do.0",
-		NodePool: &godo.KubernetesNodePoolCreateRequest{
+		NodePool: state.NodePool{
 			Name:  "node-pool-1",
 			Size:  "s-2vcpu-2gb",
 			Count: 5,
@@ -187,7 +192,7 @@ func TestDriverCreateWithoutToken(t *testing.T){
 		DisplayName: "cluster-test",
 		Name:        "my-cluster",
 		RegionSlug:  "1.17.5-do.0",
-		NodePool: &godo.KubernetesNodePoolCreateRequest{
+		NodePool: state.NodePool{
 			Name:  "node-pool-1",
 			Size:  "s-2vcpu-2gb",
 			Count: 5,
@@ -221,7 +226,7 @@ func TestDriverCreateErrorInDigitalOceanServiceCreate(t *testing.T){
 		DisplayName: "cluster-test",
 		Name:        "my-cluster",
 		RegionSlug:  "1.17.5-do.0",
-		NodePool: &godo.KubernetesNodePoolCreateRequest{
+		NodePool: state.NodePool{
 			Name:  "node-pool-1",
 			Size:  "s-2vcpu-2gb",
 			Count: 5,
@@ -267,7 +272,7 @@ func TestDriverCreateErrorInWaitClusterCreated(t *testing.T){
 		DisplayName: "cluster-test",
 		Name:        "my-cluster",
 		RegionSlug:  "1.17.5-do.0",
-		NodePool: &godo.KubernetesNodePoolCreateRequest{
+		NodePool: state.NodePool{
 			Name:  "node-pool-1",
 			Size:  "s-2vcpu-2gb",
 			Count: 5,
@@ -319,7 +324,7 @@ func TestRemoveCluster(t *testing.T){
 		DisplayName: "cluster-test",
 		Name:        "my-cluster",
 		RegionSlug:  "1.17.5-do.0",
-		NodePool: &godo.KubernetesNodePoolCreateRequest{
+		NodePool: state.NodePool{
 			Name:  "node-pool-1",
 			Size:  "s-2vcpu-2gb",
 			Count: 5,
