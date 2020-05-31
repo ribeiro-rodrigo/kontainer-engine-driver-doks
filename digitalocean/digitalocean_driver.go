@@ -33,8 +33,9 @@ func (driver *Driver) GetDriverCreateOptions(ctx context.Context) (*types.Driver
 	return driver.optionsBuilder.BuildCreateOptions(), nil
 }
 
-func (*Driver) GetDriverUpdateOptions(ctx context.Context) (*types.DriverFlags, error) {
-	return nil, nil
+func (driver *Driver) GetDriverUpdateOptions(ctx context.Context) (*types.DriverFlags, error) {
+	logrus.Debug("DigitalOcean.Driver.GetDriverUpdateOptions(...) called")
+	return driver.optionsBuilder.BuildUpdateOptions(), nil
 }
 
 func (driver *Driver) Create(ctx context.Context, opts *types.DriverOptions, info *types.ClusterInfo) (*types.ClusterInfo, error) {

@@ -4,6 +4,7 @@ import "github.com/rancher/kontainer-engine/types"
 
 type Builder interface {
 	BuildCreateOptions() *types.DriverFlags
+	BuildUpdateOptions() *types.DriverFlags
 }
 
 type builderImpl struct {
@@ -133,7 +134,7 @@ func (builderImpl) BuildCreateOptions() *types.DriverFlags {
 	)
 }
 
-func BuildUpdateOptions() *types.DriverFlags{
+func (builderImpl) BuildUpdateOptions() *types.DriverFlags{
 
 	builder := flagBuilder()
 
