@@ -382,3 +382,52 @@ func TestRemoveClusterErrorInWaitDeleted(t *testing.T){
 
 }
 
+func TestGetClusterSize(t *testing.T){
+
+	returnState := state.State{
+		Token:       "a405b7bd3e0d6193f605368102a2deafe4067ed542c92166c6d772fe7e2df019",
+		DisplayName: "cluster-test",
+		Name:        "my-cluster",
+		RegionSlug:  "1.17.5-do.0",
+		NodePool: state.NodePool{
+			Name:  "node-pool-1",
+			Size:  "s-2vcpu-2gb",
+			Count: 5,
+		},
+	}
+
+	stateBuilderMock := &StateBuilderMock{
+		buildStateFromOptsMock: func(do *types.DriverOptions) (state.State, error) {
+			return returnState,nil
+		},
+	}
+
+	returnClusterID := "abcd"
+	nodeCount := 5
+
+	digitalOceanMock := &DigitalOceanMock{
+		getNodeCountMock: func(_ context.Context, _ string) (int, error) {
+			return nodeCount, nil
+		},
+	}
+
+	driver := Driver{
+		stateBuilder: stateBuilderMock,
+		digitalOceanFactory: func(token string) service.DigitalOcean {return digitalOceanMock},
+	}
+
+	ctx := context.TODO()
+	clusterInfo := &types.ClusterInfo{}
+
+	stateBuilderMock.On("BuildStateFromClusterInfo",clusterInfo).Return(returnState)
+	digitalOceanMock.On("GetNodeCount", ctx, returnClusterID).Return(nodeCount,nil)
+
+	returnNodeCount, err := driver.GetClusterSize(ctx, clusterInfo)
+
+	stateBuilderMock.AssertExpectations(t)
+	digitalOceanMock.AssertExpectations(t)
+
+	assert.NoError(t, err, "Not error in get cluster size")
+	assert.Equal(t, nodeCount, returnNodeCount, "NodeCount equals")
+
+}
