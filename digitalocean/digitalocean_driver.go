@@ -169,8 +169,25 @@ func (*Driver) SetVersion(ctx context.Context, clusterInfo *types.ClusterInfo, v
 	return errors.New("operation change version not implemented")
 }
 
-func (*Driver) GetClusterSize(ctx context.Context, clusterInfo *types.ClusterInfo) (*types.NodeCount, error) {
-	return nil, errors.New("operation resize cluster size  not implemented")
+func (driver *Driver) GetClusterSize(ctx context.Context, clusterInfo *types.ClusterInfo) (*types.NodeCount, error) {
+
+	clusterState, err :=  driver.stateBuilder.BuildStateFromClusterInfo(clusterInfo)
+
+	if err != nil {
+		logrus.Debugf("Error BuildStateFromClusterInfo in GetClusterSize %v",err)
+		return nil, err
+	}
+
+	digitalOceanService := driver.digitalOceanFactory(clusterState.Token)
+
+	nodeCount, err := digitalOceanService.GetNodeCount(ctx, clusterState.ClusterID)
+
+	if err != nil {
+		logrus.Debugf("Error GetNodeCount in GetClusterSize")
+		return nil, err
+	}
+
+	return &types.NodeCount{Count: int64(nodeCount)}, nil
 }
 
 func (*Driver) SetClusterSize(ctx context.Context, clusterInfo *types.ClusterInfo, count *types.NodeCount) error {
