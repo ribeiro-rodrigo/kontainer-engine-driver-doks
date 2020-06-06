@@ -384,26 +384,28 @@ func TestRemoveClusterErrorInWaitDeleted(t *testing.T){
 
 func TestGetClusterSize(t *testing.T){
 
+	nodeCount := 5
+	returnClusterID := "abcd"
+
 	returnState := state.State{
 		Token:       "a405b7bd3e0d6193f605368102a2deafe4067ed542c92166c6d772fe7e2df019",
 		DisplayName: "cluster-test",
 		Name:        "my-cluster",
+		ClusterID: returnClusterID,
 		RegionSlug:  "1.17.5-do.0",
 		NodePool: state.NodePool{
 			Name:  "node-pool-1",
 			Size:  "s-2vcpu-2gb",
-			Count: 5,
+			Count: nodeCount,
 		},
 	}
 
 	stateBuilderMock := &StateBuilderMock{
-		buildStateFromOptsMock: func(do *types.DriverOptions) (state.State, error) {
-			return returnState,nil
+		buildStateFromClusterInfo: func(_ *types.ClusterInfo) (state.State, error) {
+			return returnState, nil
 		},
 	}
 
-	returnClusterID := "abcd"
-	nodeCount := 5
 
 	digitalOceanMock := &DigitalOceanMock{
 		getNodeCountMock: func(_ context.Context, _ string) (int, error) {
@@ -428,6 +430,6 @@ func TestGetClusterSize(t *testing.T){
 	digitalOceanMock.AssertExpectations(t)
 
 	assert.NoError(t, err, "Not error in get cluster size")
-	assert.Equal(t, nodeCount, returnNodeCount, "NodeCount equals")
+	assert.Equal(t, int64(nodeCount), returnNodeCount.Count, "NodeCount equals")
 
 }
