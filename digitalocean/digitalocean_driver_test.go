@@ -424,12 +424,12 @@ func TestGetClusterSize(t *testing.T){
 	stateBuilderMock.On("BuildStateFromClusterInfo",clusterInfo).Return(returnState)
 	digitalOceanMock.On("GetNodeCount", ctx, returnClusterID).Return(nodeCount,nil)
 
-	returnNodeCount, err := driver.GetClusterSize(ctx, clusterInfo)
+	clusterSize, err := driver.GetClusterSize(ctx, clusterInfo)
 
 	stateBuilderMock.AssertExpectations(t)
 	digitalOceanMock.AssertExpectations(t)
 
 	assert.NoError(t, err, "Not error in get cluster size")
-	assert.Equal(t, int64(nodeCount), returnNodeCount.Count, "NodeCount equals")
+	assert.Equal(t, int64(nodeCount), clusterSize.Count, "NodeCount equals")
 
 }
