@@ -421,12 +421,14 @@ func TestRemoveClusterErrorInWaitDeleted(t *testing.T){
 		},
 	}
 
+	returnError := errors.New("error in waht cluster deleted")
+
 	digitalOceanMock := DigitalOceanMock{
 		deleteClusterMock: func(_ context.Context, _ string) error {
 			return nil
 		},
 		waitClusterDeleted: func(_ context.Context, _ string) error {
-			return nil
+			return returnError
 		},
 	}
 
@@ -444,14 +446,14 @@ func TestRemoveClusterErrorInWaitDeleted(t *testing.T){
 
 	stateBuilderMock.On("BuildStateFromClusterInfo", clusterInfo).Return(returnState)
 	digitalOceanMock.On("DeleteCluster",ctx, returnState.ClusterID).Return(nil)
-	digitalOceanMock.On("WaitClusterDeleted",ctx, returnState.ClusterID).Return(nil)
+	digitalOceanMock.On("WaitClusterDeleted",ctx, returnState.ClusterID).Return(returnError)
 
 	err := driver.Remove(ctx, clusterInfo)
 
 	stateBuilderMock.AssertExpectations(t)
 	digitalOceanMock.AssertExpectations(t)
 
-	assert.NoError(t, err, "Not error in remove cluster")
+	assert.Error(t, err, "Error in remove cluster")
 }
 
 func TestGetClusterSize(t *testing.T){
