@@ -372,6 +372,29 @@ func TestRemoveCluster(t *testing.T){
 
 func TestRemoveClusterErrorInBuildState(t *testing.T){
 
+	returnState := state.State{}
+	returnError := errors.New("error in build state")
+
+	stateBuilderMock := &StateBuilderMock{
+		buildStateFromClusterInfo: func(_ *types.ClusterInfo) (state.State, error) {
+			return returnState, returnError
+		},
+	}
+
+	driver := Driver{
+		stateBuilder: stateBuilderMock,
+	}
+
+	clusterInfo := &types.ClusterInfo{}
+	ctx := context.TODO()
+
+	stateBuilderMock.On("BuildStateFromClusterInfo", clusterInfo).Return(returnError)
+
+	err := driver.Remove(ctx, clusterInfo)
+
+	stateBuilderMock.AssertExpectations(t)
+
+	assert.Error(t, err, "Error in remove cluster")
 }
 
 func TestRemoveClusterErrorInDigitalOceanDelete(t *testing.T){
