@@ -480,7 +480,6 @@ func TestGetClusterSize(t *testing.T){
 		},
 	}
 
-
 	digitalOceanMock := &DigitalOceanMock{
 		getNodeCountMock: func(_ context.Context, _ string) (int, error) {
 			return nodeCount, nil
