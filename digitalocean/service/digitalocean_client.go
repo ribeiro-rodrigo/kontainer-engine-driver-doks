@@ -23,6 +23,7 @@ func NewDigitalOceanFactory()DigitalOceanFactory{
 type DigitalOcean interface {
 	CreateCluster(ctx context.Context, state state.State) (string, error)
 	GetKubernetesClusterVersion(ctx context.Context, clusterID string)(string,error)
+	UpgradeKubernetesVersion(ctx context.Context, clusterID, version string)error
 	DeleteCluster(ctx context.Context, clusterID string)error
 	GetNodeCount(ctx context.Context, clusterID string) (int,error)
 	GetKubeConfig(clusterID string)(*store.KubeConfig,error)
@@ -131,6 +132,14 @@ func (do digitalOceanImpl) GetKubernetesClusterVersion(ctx context.Context, clus
 	}
 
 	return cluster.VersionSlug, nil
+}
+
+func (do digitalOceanImpl) UpgradeKubernetesVersion(ctx context.Context, clusterID, version string)error{
+	upgradeRequest := &godo.KubernetesClusterUpgradeRequest{VersionSlug: version}
+
+	_, err := do.client.Kubernetes.Upgrade(ctx, clusterID, upgradeRequest)
+
+	return err
 }
 
 func (do digitalOceanImpl) waitCluster(ctx context.Context, clusterID string,
