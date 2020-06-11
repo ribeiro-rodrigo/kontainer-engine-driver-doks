@@ -569,3 +569,7 @@ func TestGetClusterSize(t *testing.T){
 func TestGetVersion(t *testing.T){
 
 }
+
+func TestSetVersion(t *testing.T){
+
+}
