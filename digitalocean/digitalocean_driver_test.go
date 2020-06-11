@@ -559,3 +559,7 @@ func TestGetClusterSize(t *testing.T){
 	assert.Equal(t, int64(nodeCount), clusterSize.Count, "NodeCount equals")
 
 }
+
+func TestGetVersion(t *testing.T){
+
+}
