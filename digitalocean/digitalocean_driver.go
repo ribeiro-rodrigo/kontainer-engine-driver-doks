@@ -161,8 +161,25 @@ func (driver *Driver) Remove(ctx context.Context, clusterInfo *types.ClusterInfo
 	return nil
 }
 
-func (*Driver) GetVersion(ctx context.Context, clusterInfo *types.ClusterInfo) (*types.KubernetesVersion, error) {
-	return nil, errors.New("operation change version not implemented")
+func (driver *Driver) GetVersion(ctx context.Context, clusterInfo *types.ClusterInfo) (*types.KubernetesVersion, error) {
+
+	clusterState, err := driver.stateBuilder.BuildStateFromClusterInfo(clusterInfo)
+
+	if err != nil {
+		logrus.Debugf("Error BuildStateFromClusterInfo in get version %v",err)
+		return nil, err
+	}
+
+	digitalOceanService := driver.digitalOceanFactory(clusterState.Token)
+
+	kubernetesVersion, err :=  digitalOceanService.GetKubernetesClusterVersion(ctx, clusterState.ClusterID)
+
+	if err != nil {
+		logrus.Debugf("Error digital ocean service get cluster version in get version %v",err)
+		return nil, err
+	}
+
+	return &types.KubernetesVersion{Version: kubernetesVersion}, nil
 }
 
 func (*Driver) SetVersion(ctx context.Context, clusterInfo *types.ClusterInfo, version *types.KubernetesVersion) error {
