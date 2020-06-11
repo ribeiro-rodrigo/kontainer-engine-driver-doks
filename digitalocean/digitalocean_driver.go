@@ -182,8 +182,25 @@ func (driver *Driver) GetVersion(ctx context.Context, clusterInfo *types.Cluster
 	return &types.KubernetesVersion{Version: kubernetesVersion}, nil
 }
 
-func (*Driver) SetVersion(ctx context.Context, clusterInfo *types.ClusterInfo, version *types.KubernetesVersion) error {
-	return errors.New("operation change version not implemented")
+func (driver *Driver) SetVersion(ctx context.Context, clusterInfo *types.ClusterInfo, version *types.KubernetesVersion) error {
+
+	clusterState, err := driver.stateBuilder.BuildStateFromClusterInfo(clusterInfo)
+
+	if err != nil {
+		logrus.Debugf("Error build state from cluster info in set version %v",err)
+		return err
+	}
+
+	digitalOceanService := driver.digitalOceanFactory(clusterState.Token)
+
+	err = digitalOceanService.UpgradeKubernetesVersion(ctx, clusterState.ClusterID, version.Version)
+
+	if err != nil {
+		logrus.Debugf("Error upgrade kubernetes version %v",err)
+		return err
+	}
+
+	return nil
 }
 
 func (driver *Driver) GetClusterSize(ctx context.Context, clusterInfo *types.ClusterInfo) (*types.NodeCount, error) {
