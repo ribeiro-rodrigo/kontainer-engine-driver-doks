@@ -53,6 +53,7 @@ type DigitalOceanMock struct {
 	getKubeConfigMock func (clusterID string)(*store.KubeConfig,error)
 	waitClusterCreated func (ctx context.Context, clusterID string)error
 	waitClusterDeleted func (ctx context.Context, clusterID string)error
+	getKubernetesClusterVersionMock func(ctx context.Context, clusterID string)(string, error)
 }
 
 func (m *DigitalOceanMock) CreateCluster(ctx context.Context, state state.State) (string, error){
@@ -79,6 +80,11 @@ func (m *DigitalOceanMock) WaitClusterCreated(ctx context.Context, clusterID str
 func (m *DigitalOceanMock) WaitClusterDeleted(ctx context.Context, clusterID string)error{
 	m.Called(ctx,clusterID)
 	return m.waitClusterDeleted(ctx,clusterID)
+}
+
+func (m *DigitalOceanMock) GetKubernetesClusterVersion(ctx context.Context, clusterID string)(string,error){
+	m.Called(ctx,clusterID)
+	return m.getKubernetesClusterVersionMock(ctx, clusterID)
 }
 
 /*************** Defining Tests *************/
