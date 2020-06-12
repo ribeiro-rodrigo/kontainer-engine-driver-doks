@@ -21,7 +21,7 @@ func NewDigitalOceanFactory()DigitalOceanFactory{
 }
 
 type DigitalOcean interface {
-	CreateCluster(ctx context.Context, state state.State) (string, error)
+	CreateCluster(ctx context.Context, state state.State) (string, string, error)
 	GetKubernetesClusterVersion(ctx context.Context, clusterID string)(string,error)
 	UpgradeKubernetesVersion(ctx context.Context, clusterID, version string)error
 	DeleteCluster(ctx context.Context, clusterID string)error
@@ -44,7 +44,7 @@ func newDigitalOcean(token string, sleeper helper.Sleeper) DigitalOcean {
 	}
 }
 
-func (do *digitalOceanImpl) CreateCluster(ctx context.Context, state state.State) (string, error){
+func (do *digitalOceanImpl) CreateCluster(ctx context.Context, state state.State) (string, string, error){
 	createClusterRequest := &godo.KubernetesClusterCreateRequest{
 		Name: state.Name,
 		Tags: state.Tags,
@@ -57,10 +57,10 @@ func (do *digitalOceanImpl) CreateCluster(ctx context.Context, state state.State
 	cluster, _, err := do.client.Kubernetes.Create(ctx,createClusterRequest)
 
 	if err != nil {
-		return "",errors.Wrap(err,"error creating the cluster")
+		return "","",errors.Wrap(err,"error creating the cluster")
 	}
 
-	return cluster.ID, nil
+	return cluster.ID, cluster.NodePools[0].ID, nil
 }
 
 func (do *digitalOceanImpl) DeleteCluster(ctx context.Context, clusterID string)error{

@@ -55,7 +55,7 @@ func (driver *Driver) Create(ctx context.Context, opts *types.DriverOptions, inf
 
 	digitalOceanService := driver.digitalOceanFactory(clusterState.Token)
 
-	clusterID, err := digitalOceanService.CreateCluster(ctx, clusterState)
+	clusterID, nodePoolID, err := digitalOceanService.CreateCluster(ctx, clusterState)
 
 	if err != nil {
 		logrus.Debugf("Error crate cluster: %v",err)
@@ -63,6 +63,7 @@ func (driver *Driver) Create(ctx context.Context, opts *types.DriverOptions, inf
 	}
 
 	clusterState.ClusterID = clusterID
+	clusterState.NodePool.ID = nodePoolID
 
 	err = clusterState.Save(info)
 

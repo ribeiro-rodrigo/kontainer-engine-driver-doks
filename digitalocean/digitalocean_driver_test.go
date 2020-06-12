@@ -47,7 +47,7 @@ func (m *StateBuilderMock) BuildStateFromClusterInfo(clusterInfo *types.ClusterI
 
 type DigitalOceanMock struct {
 	mock.Mock
-	createClusterMock func(ctx context.Context, state state.State) (string, error)
+	createClusterMock func(ctx context.Context, state state.State) (string, string, error)
 	deleteClusterMock func (ctx context.Context, clusterID string)error
 	getNodeCountMock func (ctx context.Context, clusterID string) (int,error)
 	getKubeConfigMock func (clusterID string)(*store.KubeConfig,error)
@@ -58,7 +58,7 @@ type DigitalOceanMock struct {
 	setNodeCountMock func (ctx context.Context, clusterID string) error
 }
 
-func (m *DigitalOceanMock) CreateCluster(ctx context.Context, state state.State) (string, error){
+func (m *DigitalOceanMock) CreateCluster(ctx context.Context, state state.State) (string, string, error){
 	m.Called(ctx,state)
 	return m.createClusterMock(ctx, state)
 }
@@ -145,10 +145,11 @@ func TestDriverCreate(t *testing.T) {
 	}
 
 	returnClusterID := "abcd"
+	returnNodePoolID := "zzz"
 
 	digitalOceanMock := &DigitalOceanMock{
-		createClusterMock: func(_ context.Context, _ state.State) (string, error) {
-			return returnClusterID, nil
+		createClusterMock: func(_ context.Context, _ state.State) (string, string ,error) {
+			return returnClusterID, returnNodePoolID, nil
 		},
 		waitClusterCreated: func(_ context.Context, _ string) error {
 			return nil
@@ -165,7 +166,7 @@ func TestDriverCreate(t *testing.T) {
 	clusterInfo := &types.ClusterInfo{}
 
 	stateBuilderMock.On("BuildStateFromOpts",options).Return(returnState)
-	digitalOceanMock.On("CreateCluster", ctx, returnState).Return(returnClusterID,nil)
+	digitalOceanMock.On("CreateCluster", ctx, returnState).Return(returnClusterID,returnNodePoolID,nil)
 	digitalOceanMock.On("WaitClusterCreated",ctx,returnClusterID).Return(nil)
 
 	info, err := driver.Create(ctx, options , clusterInfo)
@@ -258,8 +259,8 @@ func TestDriverCreateErrorInDigitalOceanServiceCreate(t *testing.T){
 	}
 
 	digitalOceanMock := &DigitalOceanMock{
-		createClusterMock: func(_ context.Context, _ state.State) (string, error) {
-			return "", errors.New("error in create cluster")
+		createClusterMock: func(_ context.Context, _ state.State) (string, string, error) {
+			return "", "", errors.New("error in create cluster")
 		},
 	}
 
@@ -304,10 +305,11 @@ func TestDriverCreateErrorInWaitClusterCreated(t *testing.T){
 	}
 
 	returnClusterID := "abcd"
+	returnNodePoolID := "zzz"
 
 	digitalOceanMock := &DigitalOceanMock{
-		createClusterMock: func(_ context.Context, _ state.State) (string, error) {
-			return returnClusterID, nil
+		createClusterMock: func(_ context.Context, _ state.State) (string, string, error) {
+			return returnClusterID, returnNodePoolID, nil
 		},
 		waitClusterCreated: func(_ context.Context, _ string) error {
 			return errors.New("error in wait cluster")
@@ -324,7 +326,7 @@ func TestDriverCreateErrorInWaitClusterCreated(t *testing.T){
 	clusterInfo := &types.ClusterInfo{}
 
 	stateBuilderMock.On("BuildStateFromOpts",options).Return(returnState)
-	digitalOceanMock.On("CreateCluster", ctx, returnState).Return(returnClusterID,nil)
+	digitalOceanMock.On("CreateCluster", ctx, returnState).Return(returnClusterID,returnNodePoolID,nil)
 	digitalOceanMock.On("WaitClusterCreated",ctx,returnClusterID).Return(nil)
 
 	_, err := driver.Create(ctx, options , clusterInfo)

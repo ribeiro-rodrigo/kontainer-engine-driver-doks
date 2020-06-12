@@ -23,6 +23,7 @@ type State struct {
 }
 
 type NodePool struct {
+	ID 		  string 			`json:"name,omitempty"`
 	Name      string            `json:"name,omitempty"`
 	Size      string            `json:"size,omitempty"`
 	Count     int               `json:"count,omitempty"`
