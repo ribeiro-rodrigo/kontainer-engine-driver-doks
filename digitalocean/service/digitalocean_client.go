@@ -27,6 +27,7 @@ type DigitalOcean interface {
 	DeleteCluster(ctx context.Context, clusterID string)error
 	GetNodeCount(ctx context.Context, clusterID string) (int,error)
 	UpdateNodePool(ctx context.Context, clusterID string, nodePool state.NodePool ) error
+	GetNodePool(ctx context.Context, clusterID, nodePoolID string) (state.NodePool,error)
 	GetKubeConfig(clusterID string)(*store.KubeConfig,error)
 	WaitClusterCreated(ctx context.Context, clusterID string)error
 	WaitClusterDeleted(ctx context.Context, clusterID string)error
@@ -123,6 +124,29 @@ func (do digitalOceanImpl) GetNodeCount(ctx context.Context,
 	}
 
 	return count, err
+}
+
+func (do digitalOceanImpl) GetNodePool(ctx context.Context, clusterID, nodePoolID string) (*state.NodePool,error){
+
+	kubernetesNodePool, _, err := do.client.Kubernetes.GetNodePool(ctx, clusterID, nodePoolID)
+
+	if err != nil {
+		return nil, errors.Wrap(err,fmt.Sprintf("error in get node pool: %v",err))
+	}
+
+	nodePool := &state.NodePool{
+		Count: kubernetesNodePool.Count,
+		MaxNodes: kubernetesNodePool.MaxNodes,
+		MinNodes: kubernetesNodePool.MinNodes,
+		AutoScale: &kubernetesNodePool.AutoScale,
+		ID: kubernetesNodePool.ID,
+		Name: kubernetesNodePool.Name,
+		Tags: kubernetesNodePool.Tags,
+		Labels: kubernetesNodePool.Labels,
+		Size: kubernetesNodePool.Size,
+	}
+
+	return nodePool, nil
 }
 
 func (do digitalOceanImpl) UpdateNodePool(ctx context.Context, clusterID string, nodePool state.NodePool) error{

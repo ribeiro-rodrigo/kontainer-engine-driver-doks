@@ -225,7 +225,38 @@ func (driver *Driver) GetClusterSize(ctx context.Context, clusterInfo *types.Clu
 	return &types.NodeCount{Count: int64(nodeCount)}, nil
 }
 
-func (*Driver) SetClusterSize(ctx context.Context, clusterInfo *types.ClusterInfo, count *types.NodeCount) error {
+func (driver *Driver) SetClusterSize(ctx context.Context, clusterInfo *types.ClusterInfo, count *types.NodeCount) error {
+
+	clusterState, err := driver.stateBuilder.BuildStateFromClusterInfo(clusterInfo)
+
+	if err != nil {
+		logrus.Debugf("Error BuildStateFromClusterInfo in SetClusterSize")
+		return err
+	}
+
+	nodePool := clusterState.NodePool
+
+	if nodePool.AutoScale != nil && *nodePool.AutoScale {
+		if int64(nodePool.MinNodes) > count.Count{
+			nodePool.MinNodes = int(count.Count)
+		}else if int64(nodePool.MaxNodes) < count.Count {
+			nodePool.MaxNodes = int(count.Count)
+		}
+	}
+
+	nodePool.Count = int(count.Count)
+
+	digitalOceanService := driver.digitalOceanFactory(clusterState.Token)
+
+	err = digitalOceanService.UpdateNodePool(ctx, clusterState.ClusterID, clusterState.NodePool)
+
+	if err != nil {
+		logrus.Debugf("Error UpdateNodePool in SetClusterSize")
+		return err
+	}
+
+	clusterState.Save(clusterInfo)
+
 	return errors.New("operation resize cluster size  not implemented")
 }
 
