@@ -23,7 +23,15 @@ func NewDriver() Driver {
 		stateBuilder:   state.NewBuilder(),
 		optionsBuilder: options.NewBuilder(),
 		digitalOceanFactory: service.NewDigitalOceanFactory(),
+		driverCapabilities: types.Capabilities{
+			Capabilities: make(map[int64]bool),
+		},
 	}
+
+	driver.driverCapabilities.AddCapability(types.GetVersionCapability)
+	driver.driverCapabilities.AddCapability(types.SetVersionCapability)
+	driver.driverCapabilities.AddCapability(types.GetClusterSizeCapability)
+	driver.driverCapabilities.AddCapability(types.SetClusterSizeCapability)
 
 	return driver
 }
@@ -263,8 +271,9 @@ func (driver *Driver) SetClusterSize(ctx context.Context, clusterInfo *types.Clu
 	return nil
 }
 
-func (*Driver) GetCapabilities(ctx context.Context) (*types.Capabilities, error) {
-	return nil, nil
+func (driver *Driver) GetCapabilities(_ context.Context) (*types.Capabilities, error) {
+	logrus.Debug("DigitalOcean.Driver.GetCapabilities(...) called")
+	return &driver.driverCapabilities, nil
 }
 
 func (*Driver) RemoveLegacyServiceAccount(ctx context.Context, clusterInfo *types.ClusterInfo) error {
