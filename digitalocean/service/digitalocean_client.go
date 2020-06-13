@@ -26,7 +26,7 @@ type DigitalOcean interface {
 	UpgradeKubernetesVersion(ctx context.Context, clusterID, version string)error
 	DeleteCluster(ctx context.Context, clusterID string)error
 	GetNodeCount(ctx context.Context, clusterID string) (int,error)
-	SetNodeCount(ctx context.Context, clusterID string) error
+	SetNodeCount(ctx context.Context, clusterID, nodePoolID string ) error
 	GetKubeConfig(clusterID string)(*store.KubeConfig,error)
 	WaitClusterCreated(ctx context.Context, clusterID string)error
 	WaitClusterDeleted(ctx context.Context, clusterID string)error
@@ -125,7 +125,7 @@ func (do digitalOceanImpl) GetNodeCount(ctx context.Context,
 	return count, err
 }
 
-func (do digitalOceanImpl) SetNodeCount(ctx context.Context, clusterID string) error{
+func (do digitalOceanImpl) SetNodeCount(ctx context.Context, clusterID, nodePoolID string) error{
 	return nil
 }
 
