@@ -24,14 +24,14 @@ type State struct {
 
 type NodePool struct {
 	ID 		  string 			`json:"name,omitempty"`
-	Name      string            `json:"name,omitempty"`
-	Size      string            `json:"size,omitempty"`
-	Count     int               `json:"count,omitempty"`
-	Tags      []string          `json:"tags,omitempty"`
-	Labels    map[string]string `json:"labels,omitempty"`
-	AutoScale *bool              `json:"auto_scale,omitempty"`
-	MinNodes  int               `json:"min_nodes,omitempty"`
-	MaxNodes  int               `json:"max_nodes,omitempty"`
+	Name      string            `json:"-"`
+	Size      string            `json:"-"`
+	Count     int               `json:"-"`
+	Tags      []string          `json:"-"`
+	Labels    map[string]string `json:"-"`
+	AutoScale *bool              `json:"-"`
+	MinNodes  int               `json:"-"`
+	MaxNodes  int               `json:"-"`
 }
 
 func (state *State) Save(clusterInfo *types.ClusterInfo) error{

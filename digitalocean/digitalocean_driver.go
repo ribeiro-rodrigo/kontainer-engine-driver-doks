@@ -215,14 +215,14 @@ func (driver *Driver) GetClusterSize(ctx context.Context, clusterInfo *types.Clu
 
 	digitalOceanService := driver.digitalOceanFactory(clusterState.Token)
 
-	nodeCount, err := digitalOceanService.GetNodeCount(ctx, clusterState.ClusterID)
+	nodePool, err := digitalOceanService.GetNodePool(ctx, clusterState.ClusterID, clusterState.NodePool.ID)
 
 	if err != nil {
-		logrus.Debugf("Error GetNodeCount in GetClusterSize")
+		logrus.Debugf("Error GetNodePool in GetClusterSize")
 		return nil, err
 	}
 
-	return &types.NodeCount{Count: int64(nodeCount)}, nil
+	return &types.NodeCount{Count: int64(nodePool.Count)}, nil
 }
 
 func (driver *Driver) SetClusterSize(ctx context.Context, clusterInfo *types.ClusterInfo, count *types.NodeCount) error {
