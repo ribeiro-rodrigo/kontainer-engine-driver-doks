@@ -234,7 +234,14 @@ func (driver *Driver) SetClusterSize(ctx context.Context, clusterInfo *types.Clu
 		return err
 	}
 
-	nodePool := clusterState.NodePool
+	digitalOceanService := driver.digitalOceanFactory(clusterState.Token)
+
+	nodePool, err := digitalOceanService.GetNodePool(ctx,clusterState.ClusterID,clusterState.NodePool.ID)
+
+	if err != nil {
+		logrus.Debugf("Error GetNodePool in SetClusterSize")
+		return err
+	}
 
 	if nodePool.AutoScale != nil && *nodePool.AutoScale {
 		if int64(nodePool.MinNodes) > count.Count{
@@ -246,8 +253,6 @@ func (driver *Driver) SetClusterSize(ctx context.Context, clusterInfo *types.Clu
 
 	nodePool.Count = int(count.Count)
 
-	digitalOceanService := driver.digitalOceanFactory(clusterState.Token)
-
 	err = digitalOceanService.UpdateNodePool(ctx, clusterState.ClusterID, clusterState.NodePool)
 
 	if err != nil {
@@ -255,9 +260,7 @@ func (driver *Driver) SetClusterSize(ctx context.Context, clusterInfo *types.Clu
 		return err
 	}
 
-	clusterState.Save(clusterInfo)
-
-	return errors.New("operation resize cluster size  not implemented")
+	return nil
 }
 
 func (*Driver) GetCapabilities(ctx context.Context) (*types.Capabilities, error) {

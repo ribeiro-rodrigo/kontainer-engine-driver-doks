@@ -27,7 +27,7 @@ type DigitalOcean interface {
 	DeleteCluster(ctx context.Context, clusterID string)error
 	GetNodeCount(ctx context.Context, clusterID string) (int,error)
 	UpdateNodePool(ctx context.Context, clusterID string, nodePool state.NodePool ) error
-	GetNodePool(ctx context.Context, clusterID, nodePoolID string) (state.NodePool,error)
+	GetNodePool(ctx context.Context, clusterID, nodePoolID string) (*state.NodePool,error)
 	GetKubeConfig(clusterID string)(*store.KubeConfig,error)
 	WaitClusterCreated(ctx context.Context, clusterID string)error
 	WaitClusterDeleted(ctx context.Context, clusterID string)error
@@ -155,10 +155,13 @@ func (do digitalOceanImpl) UpdateNodePool(ctx context.Context, clusterID string,
 		Name: nodePool.Name,
 		Labels: nodePool.Labels,
 		AutoScale: nodePool.AutoScale,
-		MaxNodes: &nodePool.MaxNodes,
-		MinNodes: &nodePool.MinNodes,
 		Count: &nodePool.Count,
 		Tags: nodePool.Tags,
+	}
+
+	if updateRequest.AutoScale != nil && *updateRequest.AutoScale {
+		updateRequest.MinNodes = &nodePool.MinNodes
+		updateRequest.MaxNodes = &nodePool.MaxNodes
 	}
 
 	_, _, err :=  do.client.Kubernetes.UpdateNodePool(ctx,clusterID,nodePool.ID,updateRequest)
@@ -214,18 +217,22 @@ func (do digitalOceanImpl) waitCluster(ctx context.Context, clusterID string,
 }
 
 func (do digitalOceanImpl) buildNodePoolCreateRequest(nodePool state.NodePool) []*godo.KubernetesNodePoolCreateRequest{
-	return []*godo.KubernetesNodePoolCreateRequest{
-		{
+
+	request := &godo.KubernetesNodePoolCreateRequest{
 			Name: nodePool.Name,
 			Size: nodePool.Size,
 			Count: nodePool.Count,
 			Tags: nodePool.Tags,
 			Labels: nodePool.Labels,
 			AutoScale: *nodePool.AutoScale,
-			MinNodes: nodePool.MinNodes,
-			MaxNodes: nodePool.MaxNodes,
-		},
 	}
+
+	if request.AutoScale {
+		request.MinNodes = nodePool.MinNodes
+		request.MaxNodes = nodePool.MaxNodes
+	}
+
+	return []*godo.KubernetesNodePoolCreateRequest{request}
 }
 
 
