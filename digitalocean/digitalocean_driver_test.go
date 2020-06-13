@@ -49,7 +49,6 @@ type DigitalOceanMock struct {
 	mock.Mock
 	createClusterMock func(ctx context.Context, state state.State) (string, string, error)
 	deleteClusterMock func (ctx context.Context, clusterID string)error
-	getNodeCountMock func (ctx context.Context, clusterID string) (int,error)
 	getKubeConfigMock func (clusterID string)(*store.KubeConfig,error)
 	waitClusterCreated func (ctx context.Context, clusterID string)error
 	waitClusterDeleted func (ctx context.Context, clusterID string)error
@@ -68,10 +67,7 @@ func (m *DigitalOceanMock) DeleteCluster(ctx context.Context, clusterID string)e
 	m.Called(ctx,clusterID)
 	return m.deleteClusterMock(ctx,clusterID)
 }
-func (m *DigitalOceanMock) GetNodeCount(ctx context.Context, clusterID string) (int,error){
-	m.Called(ctx,clusterID)
-	return m.getNodeCountMock(ctx,clusterID)
-}
+
 func (m *DigitalOceanMock) GetKubeConfig(clusterID string)(*store.KubeConfig,error){
 	m.Called(clusterID)
 	return m.getKubeConfigMock(clusterID)
@@ -101,7 +97,7 @@ func (m *DigitalOceanMock) UpdateNodePool(ctx context.Context, clusterID string,
 }
 
 func (m *DigitalOceanMock) GetNodePool(ctx context.Context, clusterID, nodePoolID string) (*state.NodePool,error){
-	m.Called(ctx, clusterID)
+	m.Called(ctx, clusterID, nodePoolID)
 	return m.getNodePoolMock(ctx,clusterID,nodePoolID)
 }
 
@@ -534,17 +530,20 @@ func TestGetClusterSize(t *testing.T){
 	nodeCount := 5
 	returnClusterID := "abcd"
 
+	returnNodePool := &state.NodePool{
+		ID: "abc",
+		Name:  "node-pool-1",
+		Size:  "s-2vcpu-2gb",
+		Count: nodeCount,
+	}
+
 	returnState := state.State{
 		Token:       "a405b7bd3e0d6193f605368102a2deafe4067ed542c92166c6d772fe7e2df019",
 		DisplayName: "cluster-test",
 		Name:        "my-cluster",
 		ClusterID: returnClusterID,
 		RegionSlug:  "1.17.5-do.0",
-		NodePool: state.NodePool{
-			Name:  "node-pool-1",
-			Size:  "s-2vcpu-2gb",
-			Count: nodeCount,
-		},
+		NodePool: *returnNodePool,
 	}
 
 	stateBuilderMock := &StateBuilderMock{
@@ -554,8 +553,8 @@ func TestGetClusterSize(t *testing.T){
 	}
 
 	digitalOceanMock := &DigitalOceanMock{
-		getNodeCountMock: func(_ context.Context, _ string) (int, error) {
-			return nodeCount, nil
+		getNodePoolMock: func(_ context.Context, _, _ string) (*state.NodePool, error) {
+			return returnNodePool, nil
 		},
 	}
 
@@ -568,7 +567,7 @@ func TestGetClusterSize(t *testing.T){
 	clusterInfo := &types.ClusterInfo{}
 
 	stateBuilderMock.On("BuildStateFromClusterInfo",clusterInfo).Return(returnState)
-	digitalOceanMock.On("GetNodeCount", ctx, returnClusterID).Return(nodeCount,nil)
+	digitalOceanMock.On("GetNodePool", ctx, returnClusterID, returnNodePool.ID).Return(returnNodePool,nil)
 
 	clusterSize, err := driver.GetClusterSize(ctx, clusterInfo)
 

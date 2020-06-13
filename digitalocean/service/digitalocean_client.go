@@ -25,7 +25,6 @@ type DigitalOcean interface {
 	GetKubernetesClusterVersion(ctx context.Context, clusterID string)(string,error)
 	UpgradeKubernetesVersion(ctx context.Context, clusterID, version string)error
 	DeleteCluster(ctx context.Context, clusterID string)error
-	GetNodeCount(ctx context.Context, clusterID string) (int,error)
 	UpdateNodePool(ctx context.Context, clusterID string, nodePool state.NodePool ) error
 	GetNodePool(ctx context.Context, clusterID, nodePoolID string) (*state.NodePool,error)
 	GetKubeConfig(clusterID string)(*store.KubeConfig,error)
@@ -106,24 +105,6 @@ func (do digitalOceanImpl) WaitClusterDeleted(ctx context.Context, clusterID str
 	}
 
 	return err
-}
-
-func (do digitalOceanImpl) GetNodeCount(ctx context.Context,
-	clusterID string) (int, error){
-
-	cluster, _, err := do.client.Kubernetes.Get(ctx, clusterID)
-
-	if err != nil {
-		return 0, errors.Wrap(err,fmt.Sprintf("error in get cluster %v",err))
-	}
-
-	count := 0
-
-	for _, pool := range cluster.NodePools{
-		count += pool.Count
-	}
-
-	return count, err
 }
 
 func (do digitalOceanImpl) GetNodePool(ctx context.Context, clusterID, nodePoolID string) (*state.NodePool,error){
