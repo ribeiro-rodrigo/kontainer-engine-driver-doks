@@ -26,7 +26,7 @@ type DigitalOcean interface {
 	UpgradeKubernetesVersion(ctx context.Context, clusterID, version string)error
 	DeleteCluster(ctx context.Context, clusterID string)error
 	GetNodeCount(ctx context.Context, clusterID string) (int,error)
-	SetNodeCount(ctx context.Context, clusterID, nodePoolID string ) error
+	UpdateNodePool(ctx context.Context, clusterID string, nodePool state.NodePool ) error
 	GetKubeConfig(clusterID string)(*store.KubeConfig,error)
 	WaitClusterCreated(ctx context.Context, clusterID string)error
 	WaitClusterDeleted(ctx context.Context, clusterID string)error
@@ -125,7 +125,24 @@ func (do digitalOceanImpl) GetNodeCount(ctx context.Context,
 	return count, err
 }
 
-func (do digitalOceanImpl) SetNodeCount(ctx context.Context, clusterID, nodePoolID string) error{
+func (do digitalOceanImpl) UpdateNodePool(ctx context.Context, clusterID string, nodePool state.NodePool) error{
+
+	updateRequest := &godo.KubernetesNodePoolUpdateRequest{
+		Name: nodePool.Name,
+		Labels: nodePool.Labels,
+		AutoScale: nodePool.AutoScale,
+		MaxNodes: &nodePool.MaxNodes,
+		MinNodes: &nodePool.MinNodes,
+		Count: &nodePool.Count,
+		Tags: nodePool.Tags,
+	}
+
+	_, _, err :=  do.client.Kubernetes.UpdateNodePool(ctx,clusterID,nodePool.ID,updateRequest)
+
+	if err != nil {
+		return errors.Wrap(err, fmt.Sprintf("error in getNodePool: %v",err))
+	}
+
 	return nil
 }
 
