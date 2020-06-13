@@ -277,7 +277,8 @@ func (driver *Driver) GetCapabilities(_ context.Context) (*types.Capabilities, e
 }
 
 func (*Driver) RemoveLegacyServiceAccount(ctx context.Context, clusterInfo *types.ClusterInfo) error {
-	return errors.New("operation remove service account not implemented")
+	logrus.Debug("DigitalOcean.Driver.RemoveLegacyServiceAccount(...) called")
+	return nil
 }
 
 func (*Driver) ETCDSave(ctx context.Context, clusterInfo *types.ClusterInfo, opts *types.DriverOptions, snapshotName string) error {
@@ -289,7 +290,7 @@ func (*Driver) ETCDRestore(ctx context.Context, clusterInfo *types.ClusterInfo, 
 }
 
 func (*Driver) GetK8SCapabilities(ctx context.Context, opts *types.DriverOptions) (*types.K8SCapabilities, error) {
-	return nil, nil
+	return &types.K8SCapabilities{}, nil
 }
 
 func (*Driver) ETCDRemoveSnapshot(ctx context.Context, clusterInfo *types.ClusterInfo, opts *types.DriverOptions, snapshotName string) error {
