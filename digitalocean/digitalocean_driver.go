@@ -40,7 +40,7 @@ func (driver *Driver) GetDriverUpdateOptions(_ context.Context) (*types.DriverFl
 
 func (driver *Driver) Create(ctx context.Context, opts *types.DriverOptions, info *types.ClusterInfo) (*types.ClusterInfo, error) {
 	logrus.Debug("DigitalOcean.Driver.Create(...) called")
-	clusterState, err := driver.stateBuilder.BuildStateFromOpts(opts)
+	clusterState, nodePoolState, err := driver.stateBuilder.BuildStatesFromOpts(opts)
 
 	if err != nil{
 		logrus.Debugf("Error building clusterState: %v",err)
@@ -55,7 +55,7 @@ func (driver *Driver) Create(ctx context.Context, opts *types.DriverOptions, inf
 
 	digitalOceanService := driver.digitalOceanFactory(clusterState.Token)
 
-	clusterID, nodePoolID, err := digitalOceanService.CreateCluster(ctx, clusterState)
+	clusterID, nodePoolID, err := digitalOceanService.CreateCluster(ctx, clusterState, nodePoolState)
 
 	if err != nil {
 		logrus.Debugf("Error crate cluster: %v",err)
@@ -63,7 +63,7 @@ func (driver *Driver) Create(ctx context.Context, opts *types.DriverOptions, inf
 	}
 
 	clusterState.ClusterID = clusterID
-	clusterState.NodePool.ID = nodePoolID
+	clusterState.NodePoolID = nodePoolID
 
 	err = clusterState.Save(info)
 
@@ -85,7 +85,7 @@ func (driver *Driver) Create(ctx context.Context, opts *types.DriverOptions, inf
 func (driver *Driver) PostCheck(ctx context.Context, clusterInfo *types.ClusterInfo) (*types.ClusterInfo, error) {
 	logrus.Debug("DigitalOcean.Driver.PostCheck(...) called")
 
-	clusterState, err := driver.stateBuilder.BuildStateFromClusterInfo(clusterInfo)
+	clusterState, err := driver.stateBuilder.BuildClusterStateFromClusterInfo(clusterInfo)
 
 	if err != nil {
 		logrus.Debugf("Error build clusterState: %v",err)
@@ -115,7 +115,7 @@ func (driver *Driver) PostCheck(ctx context.Context, clusterInfo *types.ClusterI
 		return nil, errors.New("the kubeconfig file is invalid. Token not found")
 	}
 
-	nodePool, err := digitalOceanService.GetNodePool(ctx, clusterState.ClusterID, clusterState.NodePool.ID)
+	nodePool, err := digitalOceanService.GetNodePool(ctx, clusterState.ClusterID, clusterState.NodePoolID)
 
 	if err != nil {
 		logrus.Debugf("Error get node count %v",err)
@@ -136,7 +136,7 @@ func (*Driver) Update(ctx context.Context, clusterInfo *types.ClusterInfo, opts 
 func (driver *Driver) Remove(ctx context.Context, clusterInfo *types.ClusterInfo) error {
 	logrus.Debug("DigitalOcean.Driver.Remove(...) called")
 
-	clusterState, err := driver.stateBuilder.BuildStateFromClusterInfo(clusterInfo)
+	clusterState, err := driver.stateBuilder.BuildClusterStateFromClusterInfo(clusterInfo)
 
 	if err != nil {
 		logrus.Debugf("Error build state %v",err)
@@ -164,10 +164,10 @@ func (driver *Driver) Remove(ctx context.Context, clusterInfo *types.ClusterInfo
 
 func (driver *Driver) GetVersion(ctx context.Context, clusterInfo *types.ClusterInfo) (*types.KubernetesVersion, error) {
 
-	clusterState, err := driver.stateBuilder.BuildStateFromClusterInfo(clusterInfo)
+	clusterState, err := driver.stateBuilder.BuildClusterStateFromClusterInfo(clusterInfo)
 
 	if err != nil {
-		logrus.Debugf("Error BuildStateFromClusterInfo in get version %v",err)
+		logrus.Debugf("Error BuildClusterStateFromClusterInfo in get version %v",err)
 		return nil, err
 	}
 
@@ -185,7 +185,7 @@ func (driver *Driver) GetVersion(ctx context.Context, clusterInfo *types.Cluster
 
 func (driver *Driver) SetVersion(ctx context.Context, clusterInfo *types.ClusterInfo, version *types.KubernetesVersion) error {
 
-	clusterState, err := driver.stateBuilder.BuildStateFromClusterInfo(clusterInfo)
+	clusterState, err := driver.stateBuilder.BuildClusterStateFromClusterInfo(clusterInfo)
 
 	if err != nil {
 		logrus.Debugf("Error build state from cluster info in set version %v",err)
@@ -206,16 +206,16 @@ func (driver *Driver) SetVersion(ctx context.Context, clusterInfo *types.Cluster
 
 func (driver *Driver) GetClusterSize(ctx context.Context, clusterInfo *types.ClusterInfo) (*types.NodeCount, error) {
 
-	clusterState, err :=  driver.stateBuilder.BuildStateFromClusterInfo(clusterInfo)
+	clusterState, err :=  driver.stateBuilder.BuildClusterStateFromClusterInfo(clusterInfo)
 
 	if err != nil {
-		logrus.Debugf("Error BuildStateFromClusterInfo in GetClusterSize %v",err)
+		logrus.Debugf("Error BuildClusterStateFromClusterInfo in GetClusterSize %v",err)
 		return nil, err
 	}
 
 	digitalOceanService := driver.digitalOceanFactory(clusterState.Token)
 
-	nodePool, err := digitalOceanService.GetNodePool(ctx, clusterState.ClusterID, clusterState.NodePool.ID)
+	nodePool, err := digitalOceanService.GetNodePool(ctx, clusterState.ClusterID, clusterState.NodePoolID)
 
 	if err != nil {
 		logrus.Debugf("Error GetNodePool in GetClusterSize")
@@ -227,16 +227,16 @@ func (driver *Driver) GetClusterSize(ctx context.Context, clusterInfo *types.Clu
 
 func (driver *Driver) SetClusterSize(ctx context.Context, clusterInfo *types.ClusterInfo, count *types.NodeCount) error {
 
-	clusterState, err := driver.stateBuilder.BuildStateFromClusterInfo(clusterInfo)
+	clusterState, err := driver.stateBuilder.BuildClusterStateFromClusterInfo(clusterInfo)
 
 	if err != nil {
-		logrus.Debugf("Error BuildStateFromClusterInfo in SetClusterSize")
+		logrus.Debugf("Error BuildClusterStateFromClusterInfo in SetClusterSize")
 		return err
 	}
 
 	digitalOceanService := driver.digitalOceanFactory(clusterState.Token)
 
-	nodePool, err := digitalOceanService.GetNodePool(ctx,clusterState.ClusterID,clusterState.NodePool.ID)
+	nodePool, err := digitalOceanService.GetNodePool(ctx,clusterState.ClusterID,clusterState.NodePoolID)
 
 	if err != nil {
 		logrus.Debugf("Error GetNodePool in SetClusterSize")
@@ -253,7 +253,7 @@ func (driver *Driver) SetClusterSize(ctx context.Context, clusterInfo *types.Clu
 
 	nodePool.Count = int(count.Count)
 
-	err = digitalOceanService.UpdateNodePool(ctx, clusterState.ClusterID, clusterState.NodePool)
+	err = digitalOceanService.UpdateNodePool(ctx, clusterState.ClusterID,clusterState.NodePoolID, *nodePool)
 
 	if err != nil {
 		logrus.Debugf("Error UpdateNodePool in SetClusterSize")

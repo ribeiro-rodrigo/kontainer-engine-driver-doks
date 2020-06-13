@@ -21,11 +21,11 @@ func NewDigitalOceanFactory()DigitalOceanFactory{
 }
 
 type DigitalOcean interface {
-	CreateCluster(ctx context.Context, state state.State) (string, string, error)
+	CreateCluster(ctx context.Context, state state.Cluster, nodePoolState state.NodePool) (string, string, error)
 	GetKubernetesClusterVersion(ctx context.Context, clusterID string)(string,error)
 	UpgradeKubernetesVersion(ctx context.Context, clusterID, version string)error
 	DeleteCluster(ctx context.Context, clusterID string)error
-	UpdateNodePool(ctx context.Context, clusterID string, nodePool state.NodePool ) error
+	UpdateNodePool(ctx context.Context, clusterID, nodePoolID string, nodePool state.NodePool ) error
 	GetNodePool(ctx context.Context, clusterID, nodePoolID string) (*state.NodePool,error)
 	GetKubeConfig(clusterID string)(*store.KubeConfig,error)
 	WaitClusterCreated(ctx context.Context, clusterID string)error
@@ -44,14 +44,15 @@ func newDigitalOcean(token string, sleeper helper.Sleeper) DigitalOcean {
 	}
 }
 
-func (do *digitalOceanImpl) CreateCluster(ctx context.Context, state state.State) (string, string, error){
+func (do *digitalOceanImpl) CreateCluster(ctx context.Context, state state.Cluster,
+	poolState state.NodePool) (string, string, error){
 	createClusterRequest := &godo.KubernetesClusterCreateRequest{
 		Name: state.Name,
 		Tags: state.Tags,
 		AutoUpgrade: *state.AutoUpgrade,
 		RegionSlug: state.RegionSlug,
 		VersionSlug: state.VersionSlug,
-		NodePools: do.buildNodePoolCreateRequest(state.NodePool),
+		NodePools: do.buildNodePoolCreateRequest(poolState),
 	}
 
 	cluster, _, err := do.client.Kubernetes.Create(ctx,createClusterRequest)
@@ -120,7 +121,6 @@ func (do digitalOceanImpl) GetNodePool(ctx context.Context, clusterID, nodePoolI
 		MaxNodes: kubernetesNodePool.MaxNodes,
 		MinNodes: kubernetesNodePool.MinNodes,
 		AutoScale: &kubernetesNodePool.AutoScale,
-		ID: kubernetesNodePool.ID,
 		Name: kubernetesNodePool.Name,
 		Tags: kubernetesNodePool.Tags,
 		Labels: kubernetesNodePool.Labels,
@@ -130,7 +130,8 @@ func (do digitalOceanImpl) GetNodePool(ctx context.Context, clusterID, nodePoolI
 	return nodePool, nil
 }
 
-func (do digitalOceanImpl) UpdateNodePool(ctx context.Context, clusterID string, nodePool state.NodePool) error{
+func (do digitalOceanImpl) UpdateNodePool(ctx context.Context, clusterID, poolID string,
+	nodePool state.NodePool) error{
 
 	updateRequest := &godo.KubernetesNodePoolUpdateRequest{
 		Name: nodePool.Name,
@@ -145,7 +146,7 @@ func (do digitalOceanImpl) UpdateNodePool(ctx context.Context, clusterID string,
 		updateRequest.MaxNodes = &nodePool.MaxNodes
 	}
 
-	_, _, err :=  do.client.Kubernetes.UpdateNodePool(ctx,clusterID,nodePool.ID,updateRequest)
+	_, _, err :=  do.client.Kubernetes.UpdateNodePool(ctx,clusterID,poolID,updateRequest)
 
 	if err != nil {
 		return errors.Wrap(err, fmt.Sprintf("error in getNodePool: %v",err))

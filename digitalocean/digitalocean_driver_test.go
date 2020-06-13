@@ -31,36 +31,37 @@ func (m *OptionsBuilderMock) BuildUpdateOptions() *types.DriverFlags{
 
 type StateBuilderMock struct {
 	mock.Mock
-	buildStateFromOptsMock func (driverOptions *types.DriverOptions) (state.State, error)
-	buildStateFromClusterInfo func (clusterInfo *types.ClusterInfo)(state.State,error)
+	buildStatesFromOptsMock func (driverOptions *types.DriverOptions) (state.Cluster, state.NodePool ,error)
+	buildStateFromClusterInfo func (clusterInfo *types.ClusterInfo)(state.Cluster,error)
 }
 
-func (m *StateBuilderMock) BuildStateFromOpts(driverOptions *types.DriverOptions) (state.State, error){
+func (m *StateBuilderMock) BuildStatesFromOpts(driverOptions *types.DriverOptions) (state.Cluster, state.NodePool , error){
 	m.Called(driverOptions)
-	return m.buildStateFromOptsMock(driverOptions)
+	return m.buildStatesFromOptsMock(driverOptions)
 }
 
-func (m *StateBuilderMock) BuildStateFromClusterInfo(clusterInfo *types.ClusterInfo)(state.State,error){
+func (m *StateBuilderMock) BuildClusterStateFromClusterInfo(clusterInfo *types.ClusterInfo)(state.Cluster,error){
 	m.Called(clusterInfo)
 	return m.buildStateFromClusterInfo(clusterInfo)
 }
 
 type DigitalOceanMock struct {
 	mock.Mock
-	createClusterMock func(ctx context.Context, state state.State) (string, string, error)
+	createClusterMock func(ctx context.Context, state state.Cluster, pool state.NodePool ) (string, string, error)
 	deleteClusterMock func (ctx context.Context, clusterID string)error
 	getKubeConfigMock func (clusterID string)(*store.KubeConfig,error)
 	waitClusterCreated func (ctx context.Context, clusterID string)error
 	waitClusterDeleted func (ctx context.Context, clusterID string)error
 	getKubernetesClusterVersionMock func(ctx context.Context, clusterID string)(string, error)
 	upgradeKubernetesVersionMock func(ctx context.Context, clusterID, version string)error
-	updateNodePoolMock func (ctx context.Context, clusterID string, nodePool state.NodePool) error
+	updateNodePoolMock func (ctx context.Context, clusterID, nodePoolID string, nodePool state.NodePool) error
 	getNodePoolMock func(ctx context.Context, clusterID, nodePoolID string) (*state.NodePool,error)
 }
 
-func (m *DigitalOceanMock) CreateCluster(ctx context.Context, state state.State) (string, string, error){
-	m.Called(ctx,state)
-	return m.createClusterMock(ctx, state)
+func (m *DigitalOceanMock) CreateCluster(ctx context.Context, clusterState state.Cluster,
+	pool state.NodePool) (string, string, error){
+	m.Called(ctx, clusterState, pool)
+	return m.createClusterMock(ctx, clusterState, pool)
 }
 
 func (m *DigitalOceanMock) DeleteCluster(ctx context.Context, clusterID string)error {
@@ -91,9 +92,10 @@ func (m *DigitalOceanMock) UpgradeKubernetesVersion(ctx context.Context, cluster
 	return m.upgradeKubernetesVersionMock(ctx, clusterID, version)
 }
 
-func (m *DigitalOceanMock) UpdateNodePool(ctx context.Context, clusterID string, nodePool state.NodePool) error{
+func (m *DigitalOceanMock) UpdateNodePool(ctx context.Context, clusterID, nodePoolID string,
+	nodePool state.NodePool) error{
 	m.Called(ctx, clusterID)
-	return m.updateNodePoolMock(ctx, clusterID, nodePool)
+	return m.updateNodePoolMock(ctx, clusterID, nodePoolID, nodePool)
 }
 
 func (m *DigitalOceanMock) GetNodePool(ctx context.Context, clusterID, nodePoolID string) (*state.NodePool,error){
@@ -128,21 +130,22 @@ func TestGetDriverCreateOptions(t *testing.T) {
 
 func TestDriverCreate(t *testing.T) {
 
-	returnState := state.State{
+	returnNodePoolState := state.NodePool{
+		Name:  "node-pool-1",
+		Size:  "s-2vcpu-2gb",
+		Count: 5,
+	}
+
+	returnClusterState := state.Cluster{
 		Token:       "a405b7bd3e0d6193f605368102a2deafe4067ed542c92166c6d772fe7e2df019",
 		DisplayName: "cluster-test",
 		Name:        "my-cluster",
 		RegionSlug:  "1.17.5-do.0",
-		NodePool: state.NodePool{
-			Name:  "node-pool-1",
-			Size:  "s-2vcpu-2gb",
-			Count: 5,
-		},
 	}
 
 	stateBuilderMock := &StateBuilderMock{
-		buildStateFromOptsMock: func(do *types.DriverOptions) (state.State, error) {
-			return returnState,nil
+		buildStatesFromOptsMock: func(do *types.DriverOptions) (state.Cluster, state.NodePool, error) {
+			return returnClusterState, returnNodePoolState, nil
 		},
 	}
 
@@ -150,7 +153,7 @@ func TestDriverCreate(t *testing.T) {
 	returnNodePoolID := "zzz"
 
 	digitalOceanMock := &DigitalOceanMock{
-		createClusterMock: func(_ context.Context, _ state.State) (string, string ,error) {
+		createClusterMock: func(_ context.Context, _ state.Cluster, _ state.NodePool) (string, string ,error) {
 			return returnClusterID, returnNodePoolID, nil
 		},
 		waitClusterCreated: func(_ context.Context, _ string) error {
@@ -167,8 +170,12 @@ func TestDriverCreate(t *testing.T) {
 	ctx := context.TODO()
 	clusterInfo := &types.ClusterInfo{}
 
-	stateBuilderMock.On("BuildStateFromOpts",options).Return(returnState)
-	digitalOceanMock.On("CreateCluster", ctx, returnState).Return(returnClusterID,returnNodePoolID,nil)
+	stateBuilderMock.On("BuildStatesFromOpts",options).Return(returnClusterState,
+		returnNodePoolState)
+
+	digitalOceanMock.On("CreateCluster", ctx, returnClusterState,
+		returnNodePoolState).Return(returnClusterID,returnNodePoolID,nil)
+
 	digitalOceanMock.On("WaitClusterCreated",ctx,returnClusterID).Return(nil)
 
 	info, err := driver.Create(ctx, options , clusterInfo)
@@ -180,17 +187,18 @@ func TestDriverCreate(t *testing.T) {
 
 	_, ok  := info.Metadata["state"]
 
-	assert.True(t, ok, "State serialized in info")
+	assert.True(t, ok, "Cluster serialized in info")
 }
 
 func TestDriverCreateErrorInBuildStateFromOpts(t *testing.T) {
 
-	returnState := state.State{}
+	returnClusterState := state.Cluster{}
+	returnNodePoolState := state.NodePool{}
 	returnError := errors.New("error")
 
 	stateBuilderMock := &StateBuilderMock{
-		buildStateFromOptsMock: func(do *types.DriverOptions) (state.State, error) {
-			return returnState, returnError
+		buildStatesFromOptsMock: func(do *types.DriverOptions) (state.Cluster, state.NodePool ,error) {
+			return returnClusterState, returnNodePoolState,returnError
 		},
 	}
 
@@ -200,7 +208,8 @@ func TestDriverCreateErrorInBuildStateFromOpts(t *testing.T) {
 
 	options := &types.DriverOptions{}
 
-	stateBuilderMock.On("BuildStateFromOpts",options).Return(returnState, returnError)
+	stateBuilderMock.On("BuildStatesFromOpts",
+		options).Return(returnClusterState, returnNodePoolState, returnError)
 
 	_, err := driver.Create(context.TODO(), options ,&types.ClusterInfo{})
 
@@ -209,20 +218,22 @@ func TestDriverCreateErrorInBuildStateFromOpts(t *testing.T) {
 }
 
 func TestDriverCreateWithoutToken(t *testing.T){
-	returnState := state.State{
+
+	returnNodePoolState := state.NodePool{
+		Name:  "node-pool-1",
+		Size:  "s-2vcpu-2gb",
+		Count: 5,
+	}
+
+	returnClusterState := state.Cluster{
 		DisplayName: "cluster-test",
 		Name:        "my-cluster",
 		RegionSlug:  "1.17.5-do.0",
-		NodePool: state.NodePool{
-			Name:  "node-pool-1",
-			Size:  "s-2vcpu-2gb",
-			Count: 5,
-		},
 	}
 
 	stateBuilderMock := &StateBuilderMock{
-		buildStateFromOptsMock: func(_ *types.DriverOptions) (state.State, error) {
-			return returnState, nil
+		buildStatesFromOptsMock: func(_ *types.DriverOptions) (state.Cluster, state.NodePool,  error) {
+			return returnClusterState, returnNodePoolState, nil
 		},
 	}
 
@@ -232,7 +243,8 @@ func TestDriverCreateWithoutToken(t *testing.T){
 
 	options :=  &types.DriverOptions{}
 
-	stateBuilderMock.On("BuildStateFromOpts",options).Return(returnState, nil)
+	stateBuilderMock.On("BuildStatesFromOpts",
+		options).Return(returnClusterState, returnNodePoolState, nil)
 
 	_, err := driver.Create(context.TODO(), &types.DriverOptions{}, &types.ClusterInfo{})
 
@@ -242,26 +254,28 @@ func TestDriverCreateWithoutToken(t *testing.T){
 }
 
 func TestDriverCreateErrorInDigitalOceanServiceCreate(t *testing.T){
-	returnState := state.State{
+
+	returnNodePoolState := state.NodePool{
+		Name:  "node-pool-1",
+		Size:  "s-2vcpu-2gb",
+		Count: 5,
+	}
+
+	returnClusterState := state.Cluster{
 		Token:       "a405b7bd3e0d6193f605368102a2deafe4067ed542c92166c6d772fe7e2df019",
 		DisplayName: "cluster-test",
 		Name:        "my-cluster",
 		RegionSlug:  "1.17.5-do.0",
-		NodePool: state.NodePool{
-			Name:  "node-pool-1",
-			Size:  "s-2vcpu-2gb",
-			Count: 5,
-		},
 	}
 
 	stateBuilderMock := &StateBuilderMock{
-		buildStateFromOptsMock: func(do *types.DriverOptions) (state.State, error) {
-			return returnState,nil
+		buildStatesFromOptsMock: func(do *types.DriverOptions) (state.Cluster, state.NodePool, error) {
+			return returnClusterState, returnNodePoolState,nil
 		},
 	}
 
 	digitalOceanMock := &DigitalOceanMock{
-		createClusterMock: func(_ context.Context, _ state.State) (string, string, error) {
+		createClusterMock: func(_ context.Context, _ state.Cluster, _ state.NodePool) (string, string, error) {
 			return "", "", errors.New("error in create cluster")
 		},
 	}
@@ -275,8 +289,11 @@ func TestDriverCreateErrorInDigitalOceanServiceCreate(t *testing.T){
 	ctx := context.TODO()
 	clusterInfo := &types.ClusterInfo{}
 
-	stateBuilderMock.On("BuildStateFromOpts",options).Return(returnState)
-	digitalOceanMock.On("CreateCluster", ctx, returnState).Return("",nil)
+	stateBuilderMock.On("BuildStatesFromOpts",
+		options).Return(returnClusterState, returnNodePoolState)
+
+	digitalOceanMock.On("CreateCluster", ctx, returnClusterState,
+		returnNodePoolState).Return("",nil)
 
 	_, err := driver.Create(ctx, options , clusterInfo)
 
@@ -288,21 +305,23 @@ func TestDriverCreateErrorInDigitalOceanServiceCreate(t *testing.T){
 }
 
 func TestDriverCreateErrorInWaitClusterCreated(t *testing.T){
-	returnState := state.State{
+
+	returnNodePoolState := state.NodePool{
+		Name:  "node-pool-1",
+		Size:  "s-2vcpu-2gb",
+		Count: 5,
+	}
+
+	returnClusterState := state.Cluster{
 		Token:       "a405b7bd3e0d6193f605368102a2deafe4067ed542c92166c6d772fe7e2df019",
 		DisplayName: "cluster-test",
 		Name:        "my-cluster",
 		RegionSlug:  "1.17.5-do.0",
-		NodePool: state.NodePool{
-			Name:  "node-pool-1",
-			Size:  "s-2vcpu-2gb",
-			Count: 5,
-		},
 	}
 
 	stateBuilderMock := &StateBuilderMock{
-		buildStateFromOptsMock: func(do *types.DriverOptions) (state.State, error) {
-			return returnState,nil
+		buildStatesFromOptsMock: func(do *types.DriverOptions) (state.Cluster, state.NodePool ,error) {
+			return returnClusterState, returnNodePoolState,nil
 		},
 	}
 
@@ -310,7 +329,7 @@ func TestDriverCreateErrorInWaitClusterCreated(t *testing.T){
 	returnNodePoolID := "zzz"
 
 	digitalOceanMock := &DigitalOceanMock{
-		createClusterMock: func(_ context.Context, _ state.State) (string, string, error) {
+		createClusterMock: func(_ context.Context, _ state.Cluster, _ state.NodePool) (string, string, error) {
 			return returnClusterID, returnNodePoolID, nil
 		},
 		waitClusterCreated: func(_ context.Context, _ string) error {
@@ -327,8 +346,12 @@ func TestDriverCreateErrorInWaitClusterCreated(t *testing.T){
 	ctx := context.TODO()
 	clusterInfo := &types.ClusterInfo{}
 
-	stateBuilderMock.On("BuildStateFromOpts",options).Return(returnState)
-	digitalOceanMock.On("CreateCluster", ctx, returnState).Return(returnClusterID,returnNodePoolID,nil)
+	stateBuilderMock.On("BuildStatesFromOpts",
+		options).Return(returnClusterState, returnNodePoolState)
+
+	digitalOceanMock.On("CreateCluster", ctx,
+		returnClusterState, returnNodePoolState).Return(returnClusterID,returnNodePoolID,nil)
+
 	digitalOceanMock.On("WaitClusterCreated",ctx,returnClusterID).Return(nil)
 
 	_, err := driver.Create(ctx, options , clusterInfo)
@@ -341,20 +364,16 @@ func TestDriverCreateErrorInWaitClusterCreated(t *testing.T){
 }
 
 func TestRemoveCluster(t *testing.T){
-	returnState := state.State{
+
+	returnState := state.Cluster{
 		Token:       "a405b7bd3e0d6193f605368102a2deafe4067ed542c92166c6d772fe7e2df019",
 		DisplayName: "cluster-test",
 		Name:        "my-cluster",
 		RegionSlug:  "1.17.5-do.0",
-		NodePool: state.NodePool{
-			Name:  "node-pool-1",
-			Size:  "s-2vcpu-2gb",
-			Count: 5,
-		},
 	}
 
 	stateBuilderMock := &StateBuilderMock{
-		buildStateFromClusterInfo: func(_ *types.ClusterInfo) (state.State, error) {
+		buildStateFromClusterInfo: func(_ *types.ClusterInfo) (state.Cluster, error) {
 			return returnState, nil
 		},
 	}
@@ -380,7 +399,7 @@ func TestRemoveCluster(t *testing.T){
 	clusterInfo := &types.ClusterInfo{}
 	ctx := context.TODO()
 
-	stateBuilderMock.On("BuildStateFromClusterInfo", clusterInfo).Return(returnState)
+	stateBuilderMock.On("BuildClusterStateFromClusterInfo", clusterInfo).Return(returnState)
 	digitalOceanMock.On("DeleteCluster",ctx, returnState.ClusterID).Return(nil)
 	digitalOceanMock.On("WaitClusterDeleted",ctx, returnState.ClusterID).Return(nil)
 
@@ -394,11 +413,11 @@ func TestRemoveCluster(t *testing.T){
 
 func TestRemoveClusterErrorInBuildState(t *testing.T){
 
-	returnState := state.State{}
+	returnState := state.Cluster{}
 	returnError := errors.New("error in build state")
 
 	stateBuilderMock := &StateBuilderMock{
-		buildStateFromClusterInfo: func(_ *types.ClusterInfo) (state.State, error) {
+		buildStateFromClusterInfo: func(_ *types.ClusterInfo) (state.Cluster, error) {
 			return returnState, returnError
 		},
 	}
@@ -410,7 +429,7 @@ func TestRemoveClusterErrorInBuildState(t *testing.T){
 	clusterInfo := &types.ClusterInfo{}
 	ctx := context.TODO()
 
-	stateBuilderMock.On("BuildStateFromClusterInfo", clusterInfo).Return(returnError)
+	stateBuilderMock.On("BuildClusterStateFromClusterInfo", clusterInfo).Return(returnError)
 
 	err := driver.Remove(ctx, clusterInfo)
 
@@ -421,22 +440,17 @@ func TestRemoveClusterErrorInBuildState(t *testing.T){
 
 func TestRemoveClusterErrorInDigitalOceanDelete(t *testing.T){
 
-	returnState := state.State{
+	returnState := state.Cluster{
 		Token:       "a405b7bd3e0d6193f605368102a2deafe4067ed542c92166c6d772fe7e2df019",
 		DisplayName: "cluster-test",
 		Name:        "my-cluster",
 		RegionSlug:  "1.17.5-do.0",
-		NodePool: state.NodePool{
-			Name:  "node-pool-1",
-			Size:  "s-2vcpu-2gb",
-			Count: 5,
-		},
 	}
 
 	returnError := errors.New("error in delete cluster")
 
 	stateBuilderMock := &StateBuilderMock{
-		buildStateFromClusterInfo: func(_ *types.ClusterInfo) (state.State, error) {
+		buildStateFromClusterInfo: func(_ *types.ClusterInfo) (state.Cluster, error) {
 			return returnState, nil
 		},
 	}
@@ -459,7 +473,7 @@ func TestRemoveClusterErrorInDigitalOceanDelete(t *testing.T){
 	clusterInfo := &types.ClusterInfo{}
 	ctx := context.TODO()
 
-	stateBuilderMock.On("BuildStateFromClusterInfo", clusterInfo).Return(returnState)
+	stateBuilderMock.On("BuildClusterStateFromClusterInfo", clusterInfo).Return(returnState)
 	digitalOceanMock.On("DeleteCluster",ctx, returnState.ClusterID).Return(returnError)
 
 	err := driver.Remove(ctx, clusterInfo)
@@ -472,20 +486,15 @@ func TestRemoveClusterErrorInDigitalOceanDelete(t *testing.T){
 
 func TestRemoveClusterErrorInWaitDeleted(t *testing.T){
 
-	returnState := state.State{
+	returnState := state.Cluster{
 		Token:       "a405b7bd3e0d6193f605368102a2deafe4067ed542c92166c6d772fe7e2df019",
 		DisplayName: "cluster-test",
 		Name:        "my-cluster",
 		RegionSlug:  "1.17.5-do.0",
-		NodePool: state.NodePool{
-			Name:  "node-pool-1",
-			Size:  "s-2vcpu-2gb",
-			Count: 5,
-		},
 	}
 
 	stateBuilderMock := &StateBuilderMock{
-		buildStateFromClusterInfo: func(_ *types.ClusterInfo) (state.State, error) {
+		buildStateFromClusterInfo: func(_ *types.ClusterInfo) (state.Cluster, error) {
 			return returnState, nil
 		},
 	}
@@ -513,7 +522,7 @@ func TestRemoveClusterErrorInWaitDeleted(t *testing.T){
 	clusterInfo := &types.ClusterInfo{}
 	ctx := context.TODO()
 
-	stateBuilderMock.On("BuildStateFromClusterInfo", clusterInfo).Return(returnState)
+	stateBuilderMock.On("BuildClusterStateFromClusterInfo", clusterInfo).Return(returnState)
 	digitalOceanMock.On("DeleteCluster",ctx, returnState.ClusterID).Return(nil)
 	digitalOceanMock.On("WaitClusterDeleted",ctx, returnState.ClusterID).Return(returnError)
 
@@ -529,25 +538,25 @@ func TestGetClusterSize(t *testing.T){
 
 	nodeCount := 5
 	returnClusterID := "abcd"
+	returnNodePoolID := "aaas"
 
 	returnNodePool := &state.NodePool{
-		ID: "abc",
 		Name:  "node-pool-1",
 		Size:  "s-2vcpu-2gb",
 		Count: nodeCount,
 	}
 
-	returnState := state.State{
+	returnState := state.Cluster{
 		Token:       "a405b7bd3e0d6193f605368102a2deafe4067ed542c92166c6d772fe7e2df019",
 		DisplayName: "cluster-test",
 		Name:        "my-cluster",
 		ClusterID: returnClusterID,
 		RegionSlug:  "1.17.5-do.0",
-		NodePool: *returnNodePool,
+		NodePoolID: returnNodePoolID,
 	}
 
 	stateBuilderMock := &StateBuilderMock{
-		buildStateFromClusterInfo: func(_ *types.ClusterInfo) (state.State, error) {
+		buildStateFromClusterInfo: func(_ *types.ClusterInfo) (state.Cluster, error) {
 			return returnState, nil
 		},
 	}
@@ -566,8 +575,10 @@ func TestGetClusterSize(t *testing.T){
 	ctx := context.TODO()
 	clusterInfo := &types.ClusterInfo{}
 
-	stateBuilderMock.On("BuildStateFromClusterInfo",clusterInfo).Return(returnState)
-	digitalOceanMock.On("GetNodePool", ctx, returnClusterID, returnNodePool.ID).Return(returnNodePool,nil)
+	stateBuilderMock.On("BuildClusterStateFromClusterInfo",clusterInfo).Return(returnState)
+
+	digitalOceanMock.On("GetNodePool", ctx, returnClusterID,
+		returnNodePoolID).Return(returnNodePool,nil)
 
 	clusterSize, err := driver.GetClusterSize(ctx, clusterInfo)
 

@@ -9,9 +9,9 @@ import (
 	"github.com/rancher/kontainer-engine/types"
 )
 
-type State struct {
-	ClusterID string `json:"cluster_id,omitempty"`
-	Token string `json:"token,omitempty"`
+type Cluster struct {
+	ClusterID 	string `json:"cluster_id,omitempty"`
+	Token 		string `json:"token,omitempty"`
 	DisplayName string `json:"display_name,omitempty"`
 	Name        string `json:"name,omitempty"`
 	Tags        []string `json:"tags,omitempty"`
@@ -19,22 +19,21 @@ type State struct {
 	RegionSlug  string `json:"region_slug,omitempty"`
 	VPCID       string `json:"vpc_id,omitempty"`
 	VersionSlug string `json:"version_slug,omitempty"`
-	NodePool    NodePool `json:"node_pool,omitempty"`
+	NodePoolID  string `json:"node_pool_id,omitempty"`
 }
 
 type NodePool struct {
-	ID 		  string 			`json:"name,omitempty"`
-	Name      string            `json:"-"`
-	Size      string            `json:"-"`
-	Count     int               `json:"-"`
-	Tags      []string          `json:"-"`
-	Labels    map[string]string `json:"-"`
-	AutoScale *bool              `json:"-"`
-	MinNodes  int               `json:"-"`
-	MaxNodes  int               `json:"-"`
+	Name      string
+	Size      string
+	Count     int
+	Tags      []string
+	Labels    map[string]string
+	AutoScale *bool
+	MinNodes  int
+	MaxNodes  int
 }
 
-func (state *State) Save(clusterInfo *types.ClusterInfo) error{
+func (state *Cluster) Save(clusterInfo *types.ClusterInfo) error{
 	bytes, err := json.Marshal(state)
 
 	if err != nil {
@@ -51,8 +50,8 @@ func (state *State) Save(clusterInfo *types.ClusterInfo) error{
 }
 
 type Builder interface {
-	BuildStateFromOpts(driverOptions *types.DriverOptions) (State, error)
-	BuildStateFromClusterInfo(clusterInfo *types.ClusterInfo)(State,error)
+	BuildStatesFromOpts(driverOptions *types.DriverOptions) (Cluster, NodePool ,error)
+	BuildClusterStateFromClusterInfo(clusterInfo *types.ClusterInfo)(Cluster,error)
 }
 
 type builderImpl struct{}
@@ -61,50 +60,48 @@ func NewBuilder() Builder {
 	return builderImpl{}
 }
 
-func (builderImpl) BuildStateFromOpts(driverOptions *types.DriverOptions) (State, error) {
+func (builderImpl) BuildStatesFromOpts(driverOptions *types.DriverOptions) (Cluster, NodePool ,error) {
 
-	state := State{
-		Tags:     []string{},
-		NodePool: NodePool{},
-	}
+	clusterState := Cluster{Tags:[]string{}}
+	nodePoolState := NodePool{}
 
 	getValue := func(typ string, keys ...string) interface{} {
 		return options.GetValueFromDriverOptions(driverOptions, typ, keys...)
 	}
 
-	state.Token = getValue(types.StringType, "token").(string)
-	state.DisplayName = getValue(types.StringType, "display-name", "displayName").(string)
-	state.Name = getValue(types.StringType, "name").(string)
-	state.Tags = getTagsFromStringSlice(getValue(types.StringSliceType, "tags").(*types.StringSlice))
-	state.AutoUpgrade = getBoolPointer(getValue(types.BoolPointerType, "auto-upgraded", "autoUpgraded"))
-	state.RegionSlug = getValue(types.StringType, "region-slug", "regionSlug").(string)
-	state.VPCID = getValue(types.StringType, "vpc-id", "vpcID").(string)
-	state.VersionSlug = getValue(types.StringType, "version-slug", "versionSlug").(string)
-	state.NodePool.Name = getValue(types.StringType, "node-pool-name", "nodePoolName").(string)
-	state.NodePool.AutoScale = getBoolPointer(
+	clusterState.Token = getValue(types.StringType, "token").(string)
+	clusterState.DisplayName = getValue(types.StringType, "display-name", "displayName").(string)
+	clusterState.Name = getValue(types.StringType, "name").(string)
+	clusterState.Tags = getTagsFromStringSlice(getValue(types.StringSliceType, "tags").(*types.StringSlice))
+	clusterState.AutoUpgrade = getBoolPointer(getValue(types.BoolPointerType, "auto-upgraded", "autoUpgraded"))
+	clusterState.RegionSlug = getValue(types.StringType, "region-slug", "regionSlug").(string)
+	clusterState.VPCID = getValue(types.StringType, "vpc-id", "vpcID").(string)
+	clusterState.VersionSlug = getValue(types.StringType, "version-slug", "versionSlug").(string)
+	nodePoolState.Name = getValue(types.StringType, "node-pool-name", "nodePoolName").(string)
+	nodePoolState.AutoScale = getBoolPointer(
 		getValue(types.BoolPointerType, "node-pool-autoscale", "nodePoolAutoscale"),
 	)
 
-	if state.NodePool.AutoScale != nil && *state.NodePool.AutoScale {
-		state.NodePool.MaxNodes = int(getValue(types.IntType, "node-pool-max", "nodePoolMax").(int64))
-		state.NodePool.MinNodes = int(getValue(types.IntType, "node-pool-min", "nodePoolMin").(int64))
+	if nodePoolState.AutoScale != nil && *nodePoolState.AutoScale {
+		nodePoolState.MaxNodes = int(getValue(types.IntType, "node-pool-max", "nodePoolMax").(int64))
+		nodePoolState.MinNodes = int(getValue(types.IntType, "node-pool-min", "nodePoolMin").(int64))
 	}
 
-	state.NodePool.Count = int(getValue(types.IntType, "node-pool-count", "nodePoolCount").(int64))
+	nodePoolState.Count = int(getValue(types.IntType, "node-pool-count", "nodePoolCount").(int64))
 
 	nodePoolLabels := getLabelsFromStringSlice(
 		getValue(types.StringSliceType, "node-pool-labels", "nodePoolLabels").(*types.StringSlice),
 	)
 
-	state.NodePool.Labels = nodePoolLabels
-	state.NodePool.Size = getValue(types.StringType, "node-pool-size", "nodePoolSize").(string)
+	nodePoolState.Labels = nodePoolLabels
+	nodePoolState.Size = getValue(types.StringType, "node-pool-size", "nodePoolSize").(string)
 
-	return state, nil
+	return clusterState, nodePoolState, nil
 }
 
-func (builderImpl) BuildStateFromClusterInfo(clusterInfo *types.ClusterInfo)(State, error){
+func (builderImpl) BuildClusterStateFromClusterInfo(clusterInfo *types.ClusterInfo)(Cluster, error){
 	stateJson, ok := clusterInfo.Metadata["state"]
-	state := State{}
+	state := Cluster{}
 
 	if !ok{
 		return state, errors.New("there is no state in the clusterInfo")

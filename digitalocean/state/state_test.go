@@ -82,24 +82,24 @@ func TestGetStateFromOptsKeysSnakeCase(t *testing.T) {
 		},
 	}
 
-	state, err := stateBuilder.BuildStateFromOpts(&driverOptions)
+	clusterState, nodePoolState, err := stateBuilder.BuildStatesFromOpts(&driverOptions)
 
 	assert.Nil(t, err, "Not error in getStateFromOpts")
-	assert.Equal(t, token, state.Token, "Token equals")
-	assert.Equal(t, displayName, state.DisplayName, "DisplayName equals")
-	assert.Equal(t, name, state.Name, "Name equals")
-	assert.Equal(t, regionSlug, state.RegionSlug, "RegionSlug equals")
-	assert.Equal(t, versionSlug, state.VersionSlug, "VersionSlug equals")
-	assert.Equal(t, vpcID, state.VPCID, "VPCID equals")
-	assert.Equal(t, nodePoolName, state.NodePool.Name, "nodePoolName equals")
-	assert.Equal(t, nodePoolSize, state.NodePool.Size, "nodePoolSize equals")
-	assert.Equal(t, autoUpgraded, *state.AutoUpgrade, "autoUpgraded equals")
-	assert.Equal(t, nodePoolAutoScale, *state.NodePool.AutoScale, "nodePoolAutoScale equals")
-	assert.Equal(t, tags, state.Tags, "tags equals")
-	assert.Equal(t, map[string]string{"key1": "label1", "key2": "label2"}, state.NodePool.Labels, "nodePoolLabels equals")
-	assert.Equal(t, nodePoolCount, state.NodePool.Count, "nodePoolCount equals")
-	assert.Equal(t, nodePoolMin, state.NodePool.MinNodes, "nodePoolMin equals")
-	assert.Equal(t, nodePoolMax, state.NodePool.MaxNodes, "nodePoolMax equals")
+	assert.Equal(t, token, clusterState.Token, "Token equals")
+	assert.Equal(t, displayName, clusterState.DisplayName, "DisplayName equals")
+	assert.Equal(t, name, clusterState.Name, "Name equals")
+	assert.Equal(t, regionSlug, clusterState.RegionSlug, "RegionSlug equals")
+	assert.Equal(t, versionSlug, clusterState.VersionSlug, "VersionSlug equals")
+	assert.Equal(t, vpcID, clusterState.VPCID, "VPCID equals")
+	assert.Equal(t, nodePoolName, nodePoolState.Name, "nodePoolName equals")
+	assert.Equal(t, nodePoolSize, nodePoolState.Size, "nodePoolSize equals")
+	assert.Equal(t, autoUpgraded, *clusterState.AutoUpgrade, "autoUpgraded equals")
+	assert.Equal(t, nodePoolAutoScale, *nodePoolState.AutoScale, "nodePoolAutoScale equals")
+	assert.Equal(t, tags, clusterState.Tags, "tags equals")
+	assert.Equal(t, map[string]string{"key1": "label1", "key2": "label2"}, nodePoolState.Labels, "nodePoolLabels equals")
+	assert.Equal(t, nodePoolCount, nodePoolState.Count, "nodePoolCount equals")
+	assert.Equal(t, nodePoolMin, nodePoolState.MinNodes, "nodePoolMin equals")
+	assert.Equal(t, nodePoolMax, nodePoolState.MaxNodes, "nodePoolMax equals")
 
 }
 
@@ -148,24 +148,24 @@ func TestGetStateFromOptsKeysCamelCase(t *testing.T) {
 		},
 	}
 
-	state, err := stateBuilder.BuildStateFromOpts(&driverOptions)
+	clusterState, nodePoolState, err := stateBuilder.BuildStatesFromOpts(&driverOptions)
 
 	assert.Nil(t, err, "Not error in getStateFromOpts")
-	assert.Equal(t, token, state.Token, "Token equals")
-	assert.Equal(t, displayName, state.DisplayName, "DisplayName equals")
-	assert.Equal(t, name, state.Name, "Name equals")
-	assert.Equal(t, regionSlug, state.RegionSlug, "RegionSlug equals")
-	assert.Equal(t, versionSlug, state.VersionSlug, "VersionSlug equals")
-	assert.Equal(t, vpcID, state.VPCID, "VPCID equals")
-	assert.Equal(t, nodePoolName, state.NodePool.Name, "nodePoolName equals")
-	assert.Equal(t, nodePoolSize, state.NodePool.Size, "nodePoolSize equals")
-	assert.Equal(t, autoUpgraded, *state.AutoUpgrade, "autoUpgraded equals")
-	assert.Equal(t, nodePoolAutoScale, *state.NodePool.AutoScale, "nodePoolAutoScale equals")
-	assert.Equal(t, tags, state.Tags, "tags equals")
-	assert.Equal(t, map[string]string{"key1": "label1", "key2": "label2"}, state.NodePool.Labels, "nodePoolLabels equals")
-	assert.Equal(t, nodePoolCount, state.NodePool.Count, "nodePoolCount equals")
-	assert.Equal(t, nodePoolMin, state.NodePool.MinNodes, "nodePoolMin equals")
-	assert.Equal(t, nodePoolMax, state.NodePool.MaxNodes, "nodePoolMax equals")
+	assert.Equal(t, token, clusterState.Token, "Token equals")
+	assert.Equal(t, displayName, clusterState.DisplayName, "DisplayName equals")
+	assert.Equal(t, name, clusterState.Name, "Name equals")
+	assert.Equal(t, regionSlug, clusterState.RegionSlug, "RegionSlug equals")
+	assert.Equal(t, versionSlug, clusterState.VersionSlug, "VersionSlug equals")
+	assert.Equal(t, vpcID, clusterState.VPCID, "VPCID equals")
+	assert.Equal(t, nodePoolName, nodePoolState.Name, "nodePoolName equals")
+	assert.Equal(t, nodePoolSize, nodePoolState.Size, "nodePoolSize equals")
+	assert.Equal(t, autoUpgraded, *clusterState.AutoUpgrade, "autoUpgraded equals")
+	assert.Equal(t, nodePoolAutoScale, *nodePoolState.AutoScale, "nodePoolAutoScale equals")
+	assert.Equal(t, tags, clusterState.Tags, "tags equals")
+	assert.Equal(t, map[string]string{"key1": "label1", "key2": "label2"}, nodePoolState.Labels, "nodePoolLabels equals")
+	assert.Equal(t, nodePoolCount, nodePoolState.Count, "nodePoolCount equals")
+	assert.Equal(t, nodePoolMin, nodePoolState.MinNodes, "nodePoolMin equals")
+	assert.Equal(t, nodePoolMax, nodePoolState.MaxNodes, "nodePoolMax equals")
 
 }
 
@@ -184,37 +184,37 @@ func TestGetStateFromOptsKeysNotAutoScale(t *testing.T) {
 		},
 	}
 
-	state, err := stateBuilder.BuildStateFromOpts(&driverOptions)
+	_, nodePoolState, err := stateBuilder.BuildStatesFromOpts(&driverOptions)
 
 	assert.Nil(t, err, "Not error in getStateFromOpts")
-	assert.Equal(t, 0, state.NodePool.MinNodes)
-	assert.Equal(t, 0, state.NodePool.MaxNodes)
-	assert.Equal(t, nodePoolCount, state.NodePool.Count)
+	assert.Equal(t, 0, nodePoolState.MinNodes)
+	assert.Equal(t, 0, nodePoolState.MaxNodes)
+	assert.Equal(t, nodePoolCount, nodePoolState.Count)
 
 }
 
 func TestGetStateWithNilValues(t *testing.T){
 	driverOptions := types.DriverOptions{}
 
-	state, err := stateBuilder.BuildStateFromOpts(&driverOptions)
+	clusterState, nodePoolState, err := stateBuilder.BuildStatesFromOpts(&driverOptions)
 
 	assert.Nil(t, err, "Not error in getStateFromOpts")
-	assert.Equal(t, "", state.Name, "Name empty value")
-	assert.Equal(t, "", state.Token, "Token equals")
-	assert.Equal(t, "", state.DisplayName, "DisplayName equals")
-	assert.Equal(t, "", state.Name, "Name equals")
-	assert.Equal(t, "", state.RegionSlug, "RegionSlug equals")
-	assert.Equal(t, "", state.VersionSlug, "VersionSlug equals")
-	assert.Equal(t, "", state.VPCID, "VPCID equals")
-	assert.Equal(t, "", state.NodePool.Name, "nodePoolName equals")
-	assert.Equal(t, "", state.NodePool.Size, "nodePoolSize equals")
-	assert.Nil(t,state.AutoUpgrade, "autoUpgraded equals")
-	assert.Nil(t, state.NodePool.AutoScale, "nodePoolAutoScale equals")
-	assert.Equal(t, []string{}, state.Tags, "tags equals")
-	assert.Equal(t, map[string]string{}, state.NodePool.Labels, "nodePoolLabels equals")
-	assert.Equal(t, 0, state.NodePool.Count, "nodePoolCount equals")
-	assert.Equal(t, 0, state.NodePool.MinNodes, "nodePoolMin equals")
-	assert.Equal(t, 0, state.NodePool.MaxNodes, "nodePoolMax equals")
+	assert.Equal(t, "", clusterState.Name, "Name empty value")
+	assert.Equal(t, "", clusterState.Token, "Token equals")
+	assert.Equal(t, "", clusterState.DisplayName, "DisplayName equals")
+	assert.Equal(t, "", clusterState.Name, "Name equals")
+	assert.Equal(t, "", clusterState.RegionSlug, "RegionSlug equals")
+	assert.Equal(t, "", clusterState.VersionSlug, "VersionSlug equals")
+	assert.Equal(t, "", clusterState.VPCID, "VPCID equals")
+	assert.Equal(t, "", nodePoolState.Name, "nodePoolName equals")
+	assert.Equal(t, "", nodePoolState.Size, "nodePoolSize equals")
+	assert.Nil(t, clusterState.AutoUpgrade, "autoUpgraded equals")
+	assert.Nil(t, nodePoolState.AutoScale, "nodePoolAutoScale equals")
+	assert.Equal(t, []string{}, clusterState.Tags, "tags equals")
+	assert.Equal(t, map[string]string{}, nodePoolState.Labels, "nodePoolLabels equals")
+	assert.Equal(t, 0, nodePoolState.Count, "nodePoolCount equals")
+	assert.Equal(t, 0, nodePoolState.MinNodes, "nodePoolMin equals")
+	assert.Equal(t, 0, nodePoolState.MaxNodes, "nodePoolMax equals")
 }
 
 
