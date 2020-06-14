@@ -46,7 +46,7 @@ func (driver *Driver) GetDriverUpdateOptions(_ context.Context) (*types.DriverFl
 	return driver.optionsBuilder.BuildUpdateOptions(), nil
 }
 
-func (driver *Driver) Create(ctx context.Context, opts *types.DriverOptions, info *types.ClusterInfo) (*types.ClusterInfo, error) {
+func (driver *Driver) Create(ctx context.Context, opts *types.DriverOptions, _ *types.ClusterInfo) (*types.ClusterInfo, error) {
 	logrus.Debug("DigitalOcean.Driver.Create(...) called")
 	clusterState, nodePoolState, err := driver.stateBuilder.BuildStatesFromOpts(opts)
 
@@ -72,6 +72,8 @@ func (driver *Driver) Create(ctx context.Context, opts *types.DriverOptions, inf
 
 	clusterState.ClusterID = clusterID
 	clusterState.NodePoolID = nodePoolID
+
+	info := &types.ClusterInfo{}
 
 	err = clusterState.Save(info)
 
