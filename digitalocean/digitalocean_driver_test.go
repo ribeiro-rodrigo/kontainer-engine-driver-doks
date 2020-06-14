@@ -168,7 +168,6 @@ func TestDriverCreate(t *testing.T) {
 
 	options := &types.DriverOptions{}
 	ctx := context.TODO()
-	clusterInfo := &types.ClusterInfo{}
 
 	stateBuilderMock.On("BuildStatesFromOpts",options).Return(returnClusterState,
 		returnNodePoolState)
@@ -178,7 +177,7 @@ func TestDriverCreate(t *testing.T) {
 
 	digitalOceanMock.On("WaitClusterCreated",ctx,returnClusterID).Return(nil)
 
-	info, err := driver.Create(ctx, options , clusterInfo)
+	info, err := driver.Create(ctx, options , nil)
 
 	digitalOceanMock.AssertExpectations(t)
 	stateBuilderMock.AssertExpectations(t)
@@ -211,7 +210,7 @@ func TestDriverCreateErrorInBuildStateFromOpts(t *testing.T) {
 	stateBuilderMock.On("BuildStatesFromOpts",
 		options).Return(returnClusterState, returnNodePoolState, returnError)
 
-	_, err := driver.Create(context.TODO(), options ,&types.ClusterInfo{})
+	_, err := driver.Create(context.TODO(), options ,nil)
 
 	stateBuilderMock.AssertExpectations(t)
 	assert.Error(t, err, "Error in create cluster")
@@ -246,7 +245,7 @@ func TestDriverCreateWithoutToken(t *testing.T){
 	stateBuilderMock.On("BuildStatesFromOpts",
 		options).Return(returnClusterState, returnNodePoolState, nil)
 
-	_, err := driver.Create(context.TODO(), &types.DriverOptions{}, &types.ClusterInfo{})
+	_, err := driver.Create(context.TODO(), &types.DriverOptions{}, nil)
 
 	stateBuilderMock.AssertExpectations(t)
 	assert.Error(t,err, "Error in create cluster: not token")
@@ -287,7 +286,6 @@ func TestDriverCreateErrorInDigitalOceanServiceCreate(t *testing.T){
 
 	options := &types.DriverOptions{}
 	ctx := context.TODO()
-	clusterInfo := &types.ClusterInfo{}
 
 	stateBuilderMock.On("BuildStatesFromOpts",
 		options).Return(returnClusterState, returnNodePoolState)
@@ -295,7 +293,7 @@ func TestDriverCreateErrorInDigitalOceanServiceCreate(t *testing.T){
 	digitalOceanMock.On("CreateCluster", ctx, returnClusterState,
 		returnNodePoolState).Return("",nil)
 
-	_, err := driver.Create(ctx, options , clusterInfo)
+	_, err := driver.Create(ctx, options , nil)
 
 	digitalOceanMock.AssertExpectations(t)
 	stateBuilderMock.AssertExpectations(t)
@@ -344,7 +342,6 @@ func TestDriverCreateErrorInWaitClusterCreated(t *testing.T){
 
 	options := &types.DriverOptions{}
 	ctx := context.TODO()
-	clusterInfo := &types.ClusterInfo{}
 
 	stateBuilderMock.On("BuildStatesFromOpts",
 		options).Return(returnClusterState, returnNodePoolState)
@@ -354,7 +351,7 @@ func TestDriverCreateErrorInWaitClusterCreated(t *testing.T){
 
 	digitalOceanMock.On("WaitClusterCreated",ctx,returnClusterID).Return(nil)
 
-	_, err := driver.Create(ctx, options , clusterInfo)
+	_, err := driver.Create(ctx, options , nil)
 
 	digitalOceanMock.AssertExpectations(t)
 	stateBuilderMock.AssertExpectations(t)
