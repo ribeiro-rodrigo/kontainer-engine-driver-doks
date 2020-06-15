@@ -1,10 +1,10 @@
-# Kontainer Engine DigitalOcean Kubernetes Driver
+# Kontainer Engine DOKS (DigitalOcean Kubernetes) Driver
 
 [![Build Status](https://travis-ci.org/ribeiro-rodrigo/kontainer-engine-driver-digitalocean.svg?branch=master)](https://travis-ci.org/ribeiro-rodrigo/kontainer-engine-driver-digitalocean)
 [![godoc](https://godoc.org/github.com/ribeiro-rodrigo/kontainer-engine-driver-digitalocean?status.svg)](https://godoc.org/github.com/ribeiro-rodrigo/kontainer-engine-driver-digitalocean)
 [![Coverage](https://codecov.io/gh/ribeiro-rodrigo/kontainer-engine-driver-digitalocean/branch/master/graph/badge.svg)](https://codecov.io/gh/ribeiro-rodrigo/kontainer-engine-driver-digitalocean)
 
-This repo contains the DigitalOcean Kubernetes driver for the rancher server
+This repo contains the DOKS (DigitalOcean Kubernetes) driver for the rancher server
 
 ## Building
 ```shell script
