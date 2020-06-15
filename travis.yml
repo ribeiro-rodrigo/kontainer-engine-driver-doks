@@ -1,0 +1,13 @@
+language: go
+
+env: GO111MODULE=on
+
+jobs:
+  include:
+    - go: 1.14.x
+      script: bash make unit-test
+      os: linux
+
+after_success:
+  - go test -race ./digitalocean -coverprofile=coverage.txt -covermode=atomic
+  - bash <(curl -s https://codecov.io/bash)
