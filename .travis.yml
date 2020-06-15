@@ -9,5 +9,5 @@ jobs:
       os: linux
 
 after_success:
-  - go test -race ./digitalocean -coverprofile=coverage.txt -covermode=atomic
+  - go test -race ./... -coverprofile=coverage.txt -covermode=atomic
   - bash <(curl -s https://codecov.io/bash)

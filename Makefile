@@ -44,7 +44,7 @@ binary-build:
 #
 .PHONY: unit-test
 unit-test: go-install
-	go test -v ./digitalocean
+	go test -v ./...
 
 .PHONY: integ-test
 integ-test: go-install
