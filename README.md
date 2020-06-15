@@ -17,4 +17,5 @@ or
 ```
 
 ## Installing in Rancher
-Go to the Cluster Drivers management screen in Rancher and click Add Cluster Driver. Enter the URL of your driver, a UI URL (see the UI skel repo for details), and a checksum (optional), and click Create. Rancher will automatically download and install your driver. It will then become available to use on the Add Cluster screen.
+Go to the Cluster Drivers management screen in Rancher and click Add Cluster Driver. Enter the URL of your driver, a UI URL (see the [UI repo](https://github.com/ribeiro-rodrigo/ui-cluster-driver-digitalocean) for details), and a checksum (optional), and click Create. Rancher will automatically download and install your driver. It will then become available to use on the Add Cluster screen.
+
