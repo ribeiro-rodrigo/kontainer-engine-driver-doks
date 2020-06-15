@@ -1,6 +1,6 @@
 # Kontainer Engine DOKS (DigitalOcean Kubernetes Service) Driver
-[![Build Status](https://travis-ci.org/ribeiro-rodrigo/kontainer-engine-driver-digitalocean.svg?branch=master)](https://travis-ci.org/ribeiro-rodrigo/kontainer-engine-driver-digitalocean)
-[![godoc](https://godoc.org/github.com/ribeiro-rodrigo/kontainer-engine-driver-digitalocean?status.svg)](https://godoc.org/github.com/ribeiro-rodrigo/kontainer-engine-driver-digitalocean)
+[![Build Status](https://travis-ci.org/ribeiro-rodrigo/kontainer-engine-driver-doks.svg?branch=master)](https://travis-ci.org/ribeiro-rodrigo/kontainer-engine-driver-doks)
+[![godoc](https://godoc.org/github.com/ribeiro-rodrigo/kontainer-engine-driver-doks?status.svg)](https://godoc.org/github.com/ribeiro-rodrigo/kontainer-engine-driver-doks)
 [![Coverage](https://codecov.io/gh/ribeiro-rodrigo/kontainer-engine-driver-digitalocean/branch/master/graph/badge.svg)](https://codecov.io/gh/ribeiro-rodrigo/kontainer-engine-driver-digitalocean)
 
 This repo contains the DOKS (DigitalOcean Kubernetes) driver for the rancher server
