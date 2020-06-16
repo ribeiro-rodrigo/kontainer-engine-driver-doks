@@ -1,14 +1,14 @@
-package digitalocean
+package doks
 
 import (
 	"context"
 	"errors"
-	"github.com/ribeiro-rodrigo/kontainer-engine-driver-digitalocean/digitalocean/service"
+	"github.com/ribeiro-rodrigo/kontainer-engine-driver-doks/doks/service"
 	"github.com/sirupsen/logrus"
 
 	"github.com/rancher/kontainer-engine/types"
-	"github.com/ribeiro-rodrigo/kontainer-engine-driver-digitalocean/digitalocean/options"
-	"github.com/ribeiro-rodrigo/kontainer-engine-driver-digitalocean/digitalocean/state"
+	"github.com/ribeiro-rodrigo/kontainer-engine-driver-doks/doks/options"
+	"github.com/ribeiro-rodrigo/kontainer-engine-driver-doks/doks/state"
 )
 
 type Driver struct {

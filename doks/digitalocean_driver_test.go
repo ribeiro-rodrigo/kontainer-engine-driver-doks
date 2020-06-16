@@ -1,12 +1,12 @@
-package digitalocean
+package doks
 
 import (
 	"context"
 	"errors"
 	"github.com/rancher/kontainer-engine/store"
 	"github.com/rancher/kontainer-engine/types"
-	"github.com/ribeiro-rodrigo/kontainer-engine-driver-digitalocean/digitalocean/service"
-	"github.com/ribeiro-rodrigo/kontainer-engine-driver-digitalocean/digitalocean/state"
+	"github.com/ribeiro-rodrigo/kontainer-engine-driver-doks/doks/service"
+	"github.com/ribeiro-rodrigo/kontainer-engine-driver-doks/doks/state"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"testing"

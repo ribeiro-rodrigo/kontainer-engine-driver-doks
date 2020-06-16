@@ -1,4 +1,4 @@
-module github.com/ribeiro-rodrigo/kontainer-engine-driver-digitalocean
+module github.com/ribeiro-rodrigo/kontainer-engine-driver-doks
 
 go 1.14
 
