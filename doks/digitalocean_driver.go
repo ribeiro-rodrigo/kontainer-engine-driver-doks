@@ -37,17 +37,17 @@ func NewDriver() Driver {
 }
 
 func (driver *Driver) GetDriverCreateOptions(_ context.Context) (*types.DriverFlags, error) {
-	logrus.Debug("DigitalOcean.Driver.GetDriverCreateOptions(...) called")
+	logrus.Debug("DOKS.Driver.GetDriverCreateOptions(...) called")
 	return driver.optionsBuilder.BuildCreateOptions(), nil
 }
 
 func (driver *Driver) GetDriverUpdateOptions(_ context.Context) (*types.DriverFlags, error) {
-	logrus.Debug("DigitalOcean.Driver.GetDriverUpdateOptions(...) called")
+	logrus.Debug("DOKS.Driver.GetDriverUpdateOptions(...) called")
 	return driver.optionsBuilder.BuildUpdateOptions(), nil
 }
 
 func (driver *Driver) Create(ctx context.Context, opts *types.DriverOptions, _ *types.ClusterInfo) (*types.ClusterInfo, error) {
-	logrus.Debug("DigitalOcean.Driver.Create(...) called")
+	logrus.Debug("DOKS.Driver.Create(...) called")
 	clusterState, nodePoolState, err := driver.stateBuilder.BuildStatesFromOpts(opts)
 
 	if err != nil{
@@ -93,7 +93,7 @@ func (driver *Driver) Create(ctx context.Context, opts *types.DriverOptions, _ *
 }
 
 func (driver *Driver) PostCheck(ctx context.Context, clusterInfo *types.ClusterInfo) (*types.ClusterInfo, error) {
-	logrus.Debug("DigitalOcean.Driver.PostCheck(...) called")
+	logrus.Debug("DOKS.Driver.PostCheck(...) called")
 
 	clusterState, err := driver.stateBuilder.BuildClusterStateFromClusterInfo(clusterInfo)
 
@@ -144,7 +144,7 @@ func (*Driver) Update(ctx context.Context, clusterInfo *types.ClusterInfo, opts 
 }
 
 func (driver *Driver) Remove(ctx context.Context, clusterInfo *types.ClusterInfo) error {
-	logrus.Debug("DigitalOcean.Driver.Remove(...) called")
+	logrus.Debug("DOKS.Driver.Remove(...) called")
 
 	clusterState, err := driver.stateBuilder.BuildClusterStateFromClusterInfo(clusterInfo)
 
@@ -274,12 +274,12 @@ func (driver *Driver) SetClusterSize(ctx context.Context, clusterInfo *types.Clu
 }
 
 func (driver *Driver) GetCapabilities(_ context.Context) (*types.Capabilities, error) {
-	logrus.Debug("DigitalOcean.Driver.GetCapabilities(...) called")
+	logrus.Debug("DOKS.Driver.GetCapabilities(...) called")
 	return &driver.driverCapabilities, nil
 }
 
 func (*Driver) RemoveLegacyServiceAccount(ctx context.Context, clusterInfo *types.ClusterInfo) error {
-	logrus.Debug("DigitalOcean.Driver.RemoveLegacyServiceAccount(...) called")
+	logrus.Debug("DOKS.Driver.RemoveLegacyServiceAccount(...) called")
 	return nil
 }
 
