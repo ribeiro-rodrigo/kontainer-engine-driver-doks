@@ -7,8 +7,8 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/pkg/errors"
 	"github.com/rancher/kontainer-engine/store"
-	"github.com/ribeiro-rodrigo/kontainer-engine-driver-digitalocean/digitalocean/helper"
-	"github.com/ribeiro-rodrigo/kontainer-engine-driver-digitalocean/digitalocean/state"
+	"github.com/ribeiro-rodrigo/kontainer-engine-driver-doks/doks/helper"
+	"github.com/ribeiro-rodrigo/kontainer-engine-driver-doks/doks/state"
 	"time"
 )
 
