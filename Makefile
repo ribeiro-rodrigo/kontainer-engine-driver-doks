@@ -1,4 +1,4 @@
-NAME:=kontainer-engine-driver-digitalocean
+NAME:=kontainer-engine-driver-doks
 
 # local build, use user and timestamp it
 BINARY_NAME ?= ${NAME}

@@ -3,7 +3,7 @@
 [![godoc](https://godoc.org/github.com/ribeiro-rodrigo/kontainer-engine-driver-doks?status.svg)](https://godoc.org/github.com/ribeiro-rodrigo/kontainer-engine-driver-doks)
 [![Coverage](https://codecov.io/gh/ribeiro-rodrigo/kontainer-engine-driver-digitalocean/branch/master/graph/badge.svg)](https://codecov.io/gh/ribeiro-rodrigo/kontainer-engine-driver-digitalocean)
 
-This repo contains the DOKS (DigitalOcean Kubernetes) driver for the rancher server
+This repo contains the DOKS (DigitalOcean Kubernetes Service) driver for the rancher server
 
 ## Building
 ```shell script
