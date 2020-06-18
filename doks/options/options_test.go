@@ -108,11 +108,6 @@ func TestGetUpdateOptions(t *testing.T) {
 	assert.True(t, ok, "AutoUpgrade flag is present")
 	assert.Equal(t, types.BoolPointerType, autoUpgradeFlag.GetType(), "AutoUpgrade type is bool")
 
-	versionSlugFlag, ok := options.Options["version-slug"]
-
-	assert.True(t, ok, "VersionSlug flag is present")
-	assert.Equal(t, types.StringType, versionSlugFlag.GetType(), "VersionSlug type is string")
-
 	nodePoolNameFlag, ok := options.Options["node-pool-name"]
 
 	assert.True(t, ok, "NodePoolName flag is present")
