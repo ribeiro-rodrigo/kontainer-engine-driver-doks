@@ -139,7 +139,7 @@ func (driver *Driver) PostCheck(ctx context.Context, clusterInfo *types.ClusterI
 }
 
 func (*Driver) Update(ctx context.Context, clusterInfo *types.ClusterInfo, opts *types.DriverOptions) (*types.ClusterInfo, error) {
-
+	logrus.Debug("DOKS.Driver.Update(...) called")
 	return nil, nil
 }
 
@@ -173,6 +173,7 @@ func (driver *Driver) Remove(ctx context.Context, clusterInfo *types.ClusterInfo
 }
 
 func (driver *Driver) GetVersion(ctx context.Context, clusterInfo *types.ClusterInfo) (*types.KubernetesVersion, error) {
+	logrus.Debug("DOKS.Driver.GetVersion(...) called")
 
 	clusterState, err := driver.stateBuilder.BuildClusterStateFromClusterInfo(clusterInfo)
 
@@ -194,6 +195,7 @@ func (driver *Driver) GetVersion(ctx context.Context, clusterInfo *types.Cluster
 }
 
 func (driver *Driver) SetVersion(ctx context.Context, clusterInfo *types.ClusterInfo, version *types.KubernetesVersion) error {
+	logrus.Debug("DOKS.Driver.SetVersion(...) called")
 
 	clusterState, err := driver.stateBuilder.BuildClusterStateFromClusterInfo(clusterInfo)
 
@@ -215,6 +217,7 @@ func (driver *Driver) SetVersion(ctx context.Context, clusterInfo *types.Cluster
 }
 
 func (driver *Driver) GetClusterSize(ctx context.Context, clusterInfo *types.ClusterInfo) (*types.NodeCount, error) {
+	logrus.Debug("DOKS.Driver.GetClusterSize(...) called")
 
 	clusterState, err :=  driver.stateBuilder.BuildClusterStateFromClusterInfo(clusterInfo)
 
@@ -236,6 +239,7 @@ func (driver *Driver) GetClusterSize(ctx context.Context, clusterInfo *types.Clu
 }
 
 func (driver *Driver) SetClusterSize(ctx context.Context, clusterInfo *types.ClusterInfo, count *types.NodeCount) error {
+	logrus.Debug("DOKS.Driver.SetClusterSize(...) called")
 
 	clusterState, err := driver.stateBuilder.BuildClusterStateFromClusterInfo(clusterInfo)
 
