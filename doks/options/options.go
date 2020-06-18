@@ -160,13 +160,6 @@ func (builderImpl) BuildUpdateOptions() *types.DriverFlags{
 	)
 
 	builder(
-		"version-slug",
-		types.StringType,
-		"Kubernetes version",
-		nil,
-	)
-
-	builder(
 		"tags",
 		types.StringSliceType,
 		"Optional tags to your cluster",
