@@ -141,9 +141,43 @@ func (driver *Driver) PostCheck(ctx context.Context, clusterInfo *types.ClusterI
 func (driver *Driver) Update(ctx context.Context, clusterInfo *types.ClusterInfo, opts *types.DriverOptions) (*types.ClusterInfo, error) {
 	logrus.Debug("DOKS.Driver.Update(...) called")
 
+	clusterState, isUpdateCluster, err :=  driver.checkClusterStateUpdates(clusterInfo, opts)
 
+	if err != nil {
+		return nil, err
+	}
 
-	return nil, nil
+	if isUpdateCluster {
+		digitalOceanService := driver.digitalOceanFactory(clusterState.Token)
+		updateClusterErr := digitalOceanService.UpdateCluster(ctx, clusterState.ClusterID, clusterState)
+		if updateClusterErr != nil {
+			logrus.Debugf("Error update cluster %v",updateClusterErr)
+			return nil, updateClusterErr
+		}
+		saveClusterStateErr := clusterState.Save(clusterInfo)
+		if saveClusterStateErr != nil {
+			logrus.Debugf("Error save cluster state %v",saveClusterStateErr)
+			return nil, saveClusterStateErr
+		}
+	}
+
+	nodePoolState, err := driver.checkNodePoolStateUpdates(clusterInfo, opts)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if nodePoolState != nil {
+		digitalOceanService := driver.digitalOceanFactory(clusterState.Token)
+		updateNodePoolErr := digitalOceanService.UpdateNodePool(
+			ctx, clusterState.ClusterID, clusterState.NodePoolID, *nodePoolState)
+		if updateNodePoolErr != nil {
+			logrus.Debugf("Error in update node pool %v",updateNodePoolErr)
+			return nil, updateNodePoolErr
+		}
+	}
+
+	return clusterInfo, nil
 }
 
 func (driver *Driver) Remove(ctx context.Context, clusterInfo *types.ClusterInfo) error {
@@ -307,14 +341,14 @@ func (*Driver) ETCDRemoveSnapshot(ctx context.Context, clusterInfo *types.Cluste
 }
 
 func (driver Driver) checkClusterStateUpdates(clusterInfo *types.ClusterInfo,
-	options *types.DriverOptions) (*state.Cluster,error){
+	options *types.DriverOptions) (state.Cluster,bool,error){
 
 	clusterState, errClusterState := driver.stateBuilder.BuildClusterStateFromClusterInfo(clusterInfo)
 	newClusterState, _, _ := driver.stateBuilder.BuildStatesFromOpts(options)
 
 	if errClusterState != nil {
 		logrus.Debugf("Error in BuildClusterStateFromClusterInfo %v",errClusterState)
-		return nil, errClusterState
+		return state.Cluster{}, false, errClusterState
 	}
 
 	updateClusterState := false
@@ -329,10 +363,14 @@ func (driver Driver) checkClusterStateUpdates(clusterInfo *types.ClusterInfo,
 		clusterState.AutoUpgrade = newClusterState.AutoUpgrade
 	}
 
+	if newClusterState.Token != ""{
+		clusterState.Token = newClusterState.Token
+	}
+
 	if updateClusterState{
-		return &clusterState, nil
+		return clusterState, true, nil
 	}else{
-		return nil, nil
+		return state.Cluster{},false,nil
 	}
 }
 
@@ -401,4 +439,5 @@ func (driver Driver) checkNodePoolStateUpdates(clusterInfo *types.ClusterInfo,
 		return nil, nil
 	}
 }
+
 
