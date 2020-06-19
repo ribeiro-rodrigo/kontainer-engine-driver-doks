@@ -307,14 +307,14 @@ func (*Driver) ETCDRemoveSnapshot(ctx context.Context, clusterInfo *types.Cluste
 }
 
 func (driver Driver) checkClusterStateUpdates(clusterInfo *types.ClusterInfo,
-	options *types.DriverOptions) (*state.Cluster, bool,error){
+	options *types.DriverOptions) (*state.Cluster,error){
 
 	clusterState, errClusterState := driver.stateBuilder.BuildClusterStateFromClusterInfo(clusterInfo)
 	newClusterState, _, _ := driver.stateBuilder.BuildStatesFromOpts(options)
 
 	if errClusterState != nil {
 		logrus.Debugf("Error in BuildClusterStateFromClusterInfo %v",errClusterState)
-		return nil, false, errClusterState
+		return nil, errClusterState
 	}
 
 	updateClusterState := false
@@ -329,7 +329,76 @@ func (driver Driver) checkClusterStateUpdates(clusterInfo *types.ClusterInfo,
 		clusterState.AutoUpgrade = newClusterState.AutoUpgrade
 	}
 
-	return &clusterState, updateClusterState, nil
+	if updateClusterState{
+		return &clusterState, nil
+	}else{
+		return nil, nil
+	}
+}
 
+func (driver Driver) checkNodePoolStateUpdates(clusterInfo *types.ClusterInfo,
+	options *types.DriverOptions)(*state.NodePool, error){
+	_, newNodePoolState, err :=  driver.stateBuilder.BuildStatesFromOpts(options)
+	clusterState, err := driver.stateBuilder.BuildClusterStateFromClusterInfo(clusterInfo)
+
+	if err != nil {
+		logrus.Debugf("Error in get state %v",err)
+		return nil, err
+	}
+
+	digitalOceanService := driver.digitalOceanFactory(clusterState.Token)
+
+	nodePool, err := digitalOceanService.GetNodePool(context.TODO(), clusterState.ClusterID, clusterState.NodePoolID)
+
+	if err != nil {
+		logrus.Debugf("Error in get node pool %v",err)
+		return nil, err
+	}
+
+	updateNodePool := false
+
+	if newNodePoolState.Count > 0 {
+		updateNodePool = true
+		nodePool.Count = newNodePoolState.Count
+	}
+
+	if newNodePoolState.AutoScale != nil {
+		updateNodePool = true
+		nodePool.AutoScale = newNodePoolState.AutoScale
+	}
+
+	if newNodePoolState.MaxNodes > 0 && *nodePool.AutoScale {
+		if newNodePoolState.MaxNodes >= nodePool.Count {
+			updateNodePool = true
+			nodePool.MaxNodes = newNodePoolState.MaxNodes
+		}else{
+			return nil, errors.New("max nodes is greater than count")
+		}
+	}
+
+	if newNodePoolState.MinNodes > 0 && *nodePool.AutoScale {
+		if newNodePoolState.MinNodes <= nodePool.Count{
+			updateNodePool = true
+			nodePool.MinNodes = newNodePoolState.MinNodes
+		}else{
+			return nil, errors.New("min nodes is less than count")
+		}
+	}
+
+	if newNodePoolState.Name != ""{
+		updateNodePool = true
+		nodePool.Name = newNodePoolState.Name
+	}
+
+	if newNodePoolState.Tags != nil && len(newNodePoolState.Tags) > 0 {
+		updateNodePool = true
+		nodePool.Tags = newNodePoolState.Tags
+	}
+
+	if updateNodePool{
+		return nodePool, nil
+	}else{
+		return nil, nil
+	}
 }
 
