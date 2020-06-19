@@ -295,10 +295,8 @@ func (driver *Driver) SetClusterSize(ctx context.Context, clusterInfo *types.Clu
 	}
 
 	if nodePool.AutoScale != nil && *nodePool.AutoScale {
-		if int64(nodePool.MinNodes) > count.Count{
-			nodePool.MinNodes = int(count.Count)
-		}else if int64(nodePool.MaxNodes) < count.Count {
-			nodePool.MaxNodes = int(count.Count)
+		if int64(nodePool.MinNodes) > count.Count || int64(nodePool.MaxNodes) < count.Count{
+			return errors.New("count must be greater than minNodes and less than maxNodes")
 		}
 	}
 
