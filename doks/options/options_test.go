@@ -98,11 +98,6 @@ func TestGetUpdateOptions(t *testing.T) {
 	assert.True(t, ok, "Token is present")
 	assert.Equal(t, types.StringType, tokenFlag.GetType(), "Token type is string")
 
-	nameFlag, ok := options.Options["name"]
-
-	assert.True(t, ok, "Name flag is present")
-	assert.Equal(t, types.StringType, nameFlag.GetType(), "Name type is string")
-
 	autoUpgradeFlag, ok := options.Options["auto-upgraded"]
 
 	assert.True(t, ok, "AutoUpgrade flag is present")

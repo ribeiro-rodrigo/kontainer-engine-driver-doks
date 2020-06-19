@@ -139,13 +139,6 @@ func (builderImpl) BuildUpdateOptions() *types.DriverFlags{
 	builder := flagBuilder()
 
 	builder(
-		"name",
-		types.StringType,
-		"Default name to something meaningful to you",
-		nil,
-	)
-
-	builder(
 		"auto-upgraded",
 		types.BoolPointerType,
 		"Automatically updates Kubernetes version",

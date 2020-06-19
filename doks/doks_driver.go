@@ -138,8 +138,11 @@ func (driver *Driver) PostCheck(ctx context.Context, clusterInfo *types.ClusterI
 	return clusterInfo, nil
 }
 
-func (*Driver) Update(ctx context.Context, clusterInfo *types.ClusterInfo, opts *types.DriverOptions) (*types.ClusterInfo, error) {
+func (driver *Driver) Update(ctx context.Context, clusterInfo *types.ClusterInfo, opts *types.DriverOptions) (*types.ClusterInfo, error) {
 	logrus.Debug("DOKS.Driver.Update(...) called")
+
+
+
 	return nil, nil
 }
 
@@ -301,5 +304,32 @@ func (*Driver) GetK8SCapabilities(ctx context.Context, opts *types.DriverOptions
 
 func (*Driver) ETCDRemoveSnapshot(ctx context.Context, clusterInfo *types.ClusterInfo, opts *types.DriverOptions, snapshotName string) error {
 	return errors.New("etcd backup operations are not implemented")
+}
+
+func (driver Driver) checkClusterStateUpdates(clusterInfo *types.ClusterInfo,
+	options *types.DriverOptions) (*state.Cluster, bool,error){
+
+	clusterState, errClusterState := driver.stateBuilder.BuildClusterStateFromClusterInfo(clusterInfo)
+	newClusterState, _, _ := driver.stateBuilder.BuildStatesFromOpts(options)
+
+	if errClusterState != nil {
+		logrus.Debugf("Error in BuildClusterStateFromClusterInfo %v",errClusterState)
+		return nil, false, errClusterState
+	}
+
+	updateClusterState := false
+
+	if newClusterState.Tags != nil && len(newClusterState.Tags) > 0 {
+		updateClusterState = true
+		clusterState.Tags = newClusterState.Tags
+	}
+
+	if newClusterState.AutoUpgrade != nil {
+		updateClusterState = true
+		clusterState.AutoUpgrade = newClusterState.AutoUpgrade
+	}
+
+	return &clusterState, updateClusterState, nil
+
 }
 
