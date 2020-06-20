@@ -22,6 +22,7 @@ func NewDigitalOceanFactory()DigitalOceanFactory{
 
 type DigitalOcean interface {
 	CreateCluster(ctx context.Context, state state.Cluster, nodePoolState state.NodePool) (string, string, error)
+	UpdateCluster(ctx context.Context, clusterID string, cluster state.Cluster)error
 	GetKubernetesClusterVersion(ctx context.Context, clusterID string)(string,error)
 	UpgradeKubernetesVersion(ctx context.Context, clusterID, version string)error
 	DeleteCluster(ctx context.Context, clusterID string)error
@@ -62,6 +63,22 @@ func (do *digitalOceanImpl) CreateCluster(ctx context.Context, state state.Clust
 	}
 
 	return cluster.ID, cluster.NodePools[0].ID, nil
+}
+
+func (do *digitalOceanImpl) UpdateCluster(ctx context.Context, clusterID string, cluster state.Cluster)error{
+
+	updateRequest := &godo.KubernetesClusterUpdateRequest{
+		Tags: cluster.Tags,
+		AutoUpgrade: cluster.AutoUpgrade,
+	}
+
+	_, _, err := do.client.Kubernetes.Update(ctx, clusterID, updateRequest)
+
+	if err != nil {
+		return errors.Wrap(err,"error in update cluster")
+	}
+
+	return nil
 }
 
 func (do *digitalOceanImpl) DeleteCluster(ctx context.Context, clusterID string)error{
