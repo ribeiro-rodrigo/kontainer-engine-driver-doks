@@ -55,6 +55,7 @@ type DigitalOceanMock struct {
 	getKubernetesClusterVersionMock func(ctx context.Context, clusterID string)(string, error)
 	upgradeKubernetesVersionMock func(ctx context.Context, clusterID, version string)error
 	updateNodePoolMock func (ctx context.Context, clusterID, nodePoolID string, nodePool state.NodePool) error
+	updateClusterMock func(ctx context.Context, clusterID string, cluster state.Cluster)error
 	getNodePoolMock func(ctx context.Context, clusterID, nodePoolID string) (*state.NodePool,error)
 }
 
@@ -101,6 +102,11 @@ func (m *DigitalOceanMock) UpdateNodePool(ctx context.Context, clusterID, nodePo
 func (m *DigitalOceanMock) GetNodePool(ctx context.Context, clusterID, nodePoolID string) (*state.NodePool,error){
 	m.Called(ctx, clusterID, nodePoolID)
 	return m.getNodePoolMock(ctx,clusterID,nodePoolID)
+}
+
+func (m *DigitalOceanMock) UpdateCluster(ctx context.Context, clusterID string, cluster state.Cluster)error{
+	m.Called(ctx, clusterID, clusterID)
+	return m.updateClusterMock(ctx, clusterID, cluster)
 }
 
 /*************** Defining Tests *************/
